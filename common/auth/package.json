@@ -1,0 +1,31 @@
+{
+  "name": "@project-olympus/auth",
+  "version": "1.0.0",
+  "description": "Azure MSAL token validation and NestJS auth guards",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "jest",
+    "update-deps": "pnpm update --latest"
+  },
+  "dependencies": {
+    "@azure/msal-node": "^2.0.0",
+    "@nestjs/common": "^10.0.0",
+    "jwks-rsa": "^3.0.0",
+    "jsonwebtoken": "^9.0.0"
+  },
+  "peerDependencies": {
+    "@nestjs/core": "^10.0.0"
+  },
+  "devDependencies": {
+    "@nestjs/testing": "^10.0.0",
+    "@types/jest": "^30.0.0",
+    "@types/jsonwebtoken": "^9.0.0",
+    "@types/node": "^25.6.0",
+    "jest": "^30.3.0",
+    "ts-jest": "^29.4.9",
+    "typescript": "^5.9.3"
+  },
+  "author": "Pravir Raghu"
+}

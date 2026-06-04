@@ -1,0 +1,43 @@
+{
+  "name": "@project-olympus/database",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "prisma"
+  ],
+  "scripts": {
+    "build": "pnpm prisma:generate && tsc -p tsconfig.json",
+    "prisma:generate": "prisma generate --config=prisma.config.ts && prisma generate --config=prisma.config.customer.ts && prisma generate --config=prisma.config.schedule.ts && prisma generate --config=prisma.config.shared.ts",
+    "prisma:migrate:admin": "prisma migrate dev --config=prisma.config.ts",
+    "prisma:migrate:customer": "prisma migrate dev --config=prisma.config.customer.ts",
+    "prisma:migrate:schedule": "prisma migrate dev --config=prisma.config.schedule.ts",
+    "prisma:migrate:shared": "prisma migrate dev --config=prisma.config.shared.ts",
+    "prisma:migrate:deploy:admin": "prisma migrate deploy --config=prisma.config.ts",
+    "prisma:migrate:deploy:customer": "prisma migrate deploy --config=prisma.config.customer.ts",
+    "prisma:migrate:deploy:schedule": "prisma migrate deploy --config=prisma.config.schedule.ts",
+    "prisma:migrate:deploy:shared": "prisma migrate deploy --config=prisma.config.shared.ts",
+    "prisma:studio:admin": "prisma studio --config=prisma.config.ts",
+    "prisma:studio:customer": "prisma studio --config=prisma.config.customer.ts",
+    "prisma:studio:schedule": "prisma studio --config=prisma.config.schedule.ts",
+    "prisma:studio:shared": "prisma studio --config=prisma.config.shared.ts",
+    "prisma:format": "prisma format --config=prisma.config.ts && prisma format --config=prisma.config.customer.ts && prisma format --config=prisma.config.schedule.ts && prisma format --config=prisma.config.shared.ts",
+    "prisma:seed": "tsx prisma/seed.ts",
+    "update-deps": "pnpm update --latest"
+  },
+  "dependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@prisma/adapter-mariadb": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "dotenv": "^17.4.2",
+    "mariadb": "^3.5.2",
+    "prisma": "^7.8.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.9.3"
+  },
+  "author": "Pravir Raghu"
+}

@@ -1,0 +1,120 @@
+version: "3.8"
+
+services:
+    mysql:
+        image: mysql:8.0
+        container_name: mono-repo-mysql
+        restart: unless-stopped
+        environment:
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+            MYSQL_USER: ${MYSQL_USER:-appuser}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD:-apppassword}
+        ports:
+            - "3306:3306"
+        volumes:
+            - mysql_dev_data:/var/lib/mysql
+            - ./mysql-init:/docker-entrypoint-initdb.d
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+            interval: 5s
+            timeout: 5s
+            retries: 10
+        networks:
+            - mono-repo-dev
+
+    redis:
+        image: redis:7-alpine
+        container_name: mono-repo-redis-dev
+        restart: unless-stopped
+        ports:
+            - "6379:6379"
+        volumes:
+            - redis_dev_data:/data
+        command: redis-server --appendonly yes
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+        networks:
+            - mono-repo-dev
+
+    redis-commander:
+        image: rediscommander/redis-commander:latest
+        container_name: mono-repo-redis-ui
+        restart: unless-stopped
+        environment:
+            REDIS_HOSTS: local:redis:6379
+        ports:
+            - "8081:8081"
+        depends_on:
+            redis:
+                condition: service_healthy
+        networks:
+            - mono-repo-dev
+
+    mailhog:
+        image: mailhog/mailhog:latest
+        container_name: mono-repo-mailhog
+        restart: unless-stopped
+        ports:
+            - "1025:1025"
+            - "8025:8025"
+        networks:
+            - mono-repo-dev
+
+    adminer:
+        image: adminer:latest
+        container_name: mono-repo-adminer
+        restart: unless-stopped
+        ports:
+            - "8080:8080"
+        environment:
+            ADMINER_DEFAULT_SERVER: mysql
+            ADMINER_DESIGN: dracula
+        depends_on:
+            mysql:
+                condition: service_healthy
+        networks:
+            - mono-repo-dev
+
+    directus:
+        image: directus/directus:latest
+        container_name: mono-repo-directus
+        restart: unless-stopped
+        ports:
+            - "8055:8055"
+        environment:
+            SECRET: ${DIRECTUS_SECRET:-changeme}
+            DB_CLIENT: mysql
+            DB_HOST: mysql
+            DB_PORT: 3306
+            DB_DATABASE: app_cms
+            DB_USER: ${MYSQL_USER:-appuser}
+            DB_PASSWORD: ${MYSQL_PASSWORD:-apppassword}
+            ADMIN_EMAIL: ${DIRECTUS_ADMIN_EMAIL:-admin@example.com}
+            ADMIN_PASSWORD: ${DIRECTUS_ADMIN_PASSWORD:-Admin_password1!}
+            WEBSOCKETS_ENABLED: "true"
+        depends_on:
+            mysql:
+                condition: service_healthy
+        volumes:
+            - directus_uploads:/directus/uploads
+            - directus_extensions:/directus/extensions
+        networks:
+            - mono-repo-dev
+
+volumes:
+    mysql_dev_data:
+        name: mono-repo-mysql-dev-data
+    redis_dev_data:
+        name: mono-repo-redis-dev-data
+    directus_uploads:
+        name: mono-repo-directus-uploads
+    directus_extensions:
+        name: mono-repo-directus-extensions
+
+networks:
+    mono-repo-dev:
+        name: mono-repo-dev-network
+        driver: bridge

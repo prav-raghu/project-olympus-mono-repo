@@ -1,0 +1,33 @@
+-- CreateTable
+CREATE TABLE `users` (
+    `id` VARCHAR(36) NOT NULL,
+    `username` VARCHAR(100) NOT NULL,
+    `email` VARCHAR(255) NOT NULL,
+    `avatar` VARCHAR(2048) NULL,
+    `gender` VARCHAR(36) NULL,
+    `age` INTEGER NULL,
+    `accept_terms_and_conditions` BOOLEAN NOT NULL DEFAULT false,
+    `allow_email_communications` BOOLEAN NOT NULL DEFAULT false,
+    `ip_address` VARCHAR(45) NOT NULL,
+    `last_seen` DATETIME(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
+    `is_active` BOOLEAN NOT NULL DEFAULT true,
+    `two_factor_enabled` BOOLEAN NOT NULL DEFAULT false,
+    `two_factor_secret` VARCHAR(512) NULL,
+    `user_status_id` VARCHAR(36) NOT NULL,
+    `role_id` VARCHAR(36) NOT NULL,
+    `azure_oid` VARCHAR(36) NULL,
+    `created_at` DATETIME(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
+    `updated_at` DATETIME(0) NOT NULL,
+    `created_by` VARCHAR(36) NOT NULL DEFAULT 'SYSTEM',
+    `modified_by` VARCHAR(36) NOT NULL DEFAULT 'SYSTEM',
+
+    UNIQUE INDEX `users_username_key`(`username`),
+    UNIQUE INDEX `users_email_key`(`email`),
+    UNIQUE INDEX `users_azure_oid_key`(`azure_oid`),
+    INDEX `users_is_active_last_seen_idx`(`is_active`, `last_seen`),
+    INDEX `users_user_status_id_is_active_idx`(`user_status_id`, `is_active`),
+    INDEX `users_role_id_idx`(`role_id`),
+    INDEX `users_azure_oid_idx`(`azure_oid`),
+    INDEX `users_created_at_id_idx`(`created_at` DESC, `id`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

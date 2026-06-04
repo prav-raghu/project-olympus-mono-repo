@@ -1,0 +1,45 @@
+{
+  "name": "@project-olympus/logging",
+  "version": "1.0.0",
+  "description": "Azure Monitor logging for NestJS services",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "update-deps": "pnpm update --latest"
+  },
+  "dependencies": {
+    "@azure/monitor-opentelemetry": "^1.0.0",
+    "@nestjs/common": "^10.0.0",
+    "@opentelemetry/api": "^1.9.1",
+    "@opentelemetry/api-logs": "^0.218.0",
+    "@opentelemetry/exporter-logs-otlp-http": "^0.218.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.218.0",
+    "@opentelemetry/instrumentation-http": "^0.218.0",
+    "@opentelemetry/instrumentation-undici": "^0.28.0",
+    "@opentelemetry/resources": "^2.7.1",
+    "@opentelemetry/sdk-logs": "^0.218.0",
+    "@opentelemetry/sdk-node": "^0.218.0",
+    "@opentelemetry/semantic-conventions": "^1.40.0",
+    "dotenv": "^17.4.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.6.0",
+    "@typescript-eslint/eslint-plugin": "^8.59.2",
+    "@typescript-eslint/parser": "^8.59.2",
+    "eslint": "^10.3.0",
+    "jest": "^30.3.0",
+    "ts-jest": "^29.4.9",
+    "typescript": "^5.9.3"
+  },
+  "keywords": [
+    "logging",
+    "azure-monitor",
+    "opentelemetry",
+    "nestjs"
+  ],
+  "author": "Pravir Raghu",
+  "license": "MIT"
+}

@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/@project-olympus/db-admin"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model User {
+  id                       String      @id @db.VarChar(36) @map("id")
+  username                 String      @unique @db.VarChar(100) @map("username")
+  email                    String      @unique @db.VarChar(255) @map("email")
+  password                 String?     @db.VarChar(255) @map("password")
+  avatar                   String?     @db.VarChar(2048) @map("avatar")
+  genderId                 String?     @db.VarChar(36) @map("gender")
+  age                      Int?        @map("age")
+  acceptTermsAndConditions Boolean     @default(false) @map("accept_terms_and_conditions")
+  allowEmailCommunications Boolean     @default(false) @map("allow_email_communications")
+  ipAddress                String      @db.VarChar(45) @map("ip_address")
+  lastSeen                 DateTime    @default(now()) @db.DateTime(0) @map("last_seen")
+  isActive                 Boolean     @default(true) @map("is_active")
+  authHash                 String?     @db.VarChar(255) @map("auth_hash")
+  authHashExpiration       DateTime?   @db.DateTime(0) @map("auth_hash_expiration")
+  twoFactorEnabled         Boolean     @default(false) @map("two_factor_enabled")
+  twoFactorSecret          String?     @db.VarChar(512) @map("two_factor_secret")
+  userStatusId             String      @db.VarChar(36) @map("user_status_id")
+  roleId                   String      @db.VarChar(36) @map("role_id")
+  azureOid                 String?     @unique @db.VarChar(36) @map("azure_oid")
+  createdAt                DateTime    @default(now()) @db.DateTime(0) @map("created_at")
+  updatedAt                DateTime    @updatedAt @db.DateTime(0) @map("updated_at")
+  createdBy                String      @default("SYSTEM") @db.VarChar(36) @map("created_by")
+  modifiedBy               String      @default("SYSTEM") @db.VarChar(36) @map("modified_by")
+
+  status                   UserStatus  @relation(fields: [userStatusId], references: [id])
+  roles                    Role        @relation(fields: [roleId], references: [id])
+
+  @@index([isActive, lastSeen])
+  @@index([userStatusId, isActive])
+  @@index([roleId])
+  @@index([azureOid])
+  @@index([authHash])
+  @@index([createdAt(sort: Desc), id])
+  @@map("users")
+}
+
+model Role {
+  id         String   @id @db.VarChar(36) @map("id")
+  name       String   @unique @db.VarChar(100) @map("name")
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @db.DateTime(0) @map("created_at")
+  updatedAt  DateTime @updatedAt @db.DateTime(0) @map("updated_at")
+  createdBy  String   @default("SYSTEM") @db.VarChar(36) @map("created_by")
+  modifiedBy String   @default("SYSTEM") @db.VarChar(36) @map("modified_by")
+
+  users      User[]
+
+  @@index([isActive])
+  @@map("roles")
+}
+
+model UserStatus {
+  id         String   @id @db.VarChar(36) @map("id")
+  name       String   @unique @db.VarChar(100) @map("name")
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @db.DateTime(0) @map("created_at")
+  updatedAt  DateTime @updatedAt @db.DateTime(0) @map("updated_at")
+  createdBy  String   @default("SYSTEM") @db.VarChar(36) @map("created_by")
+  modifiedBy String   @default("SYSTEM") @db.VarChar(36) @map("modified_by")
+
+  users      User[]
+
+  @@map("user_statuses")
+}
+
+model WebhookSubscription {
+  id              String            @id @db.VarChar(36) @map("id")
+  url             String            @db.VarChar(2048) @map("url")
+  secret          String            @db.VarChar(512) @map("secret")
+  events          String            @db.LongText @map("events")
+  isActive        Boolean           @default(true) @map("is_active")
+  retryCount      Int               @default(3) @map("retry_count")
+  timeoutSeconds  Int               @default(30) @map("timeout_seconds")
+  createdBy       String?           @db.VarChar(36) @map("created_by")
+  createdAt       DateTime          @default(now()) @db.DateTime(0) @map("created_at")
+  updatedAt       DateTime          @updatedAt @db.DateTime(0) @map("updated_at")
+  lastTriggeredAt DateTime?         @db.DateTime(0) @map("last_triggered_at")
+
+  deliveries WebhookDelivery[]
+
+  @@index([isActive])
+  @@index([createdAt])
+  @@map("webhook_subscriptions")
+}
+
+model WebhookDelivery {
+  id             String              @id @db.VarChar(36) @map("id")
+  subscriptionId String              @db.VarChar(36) @map("subscription_id")
+  eventType      String              @db.VarChar(200) @map("event_type")
+  payload        Json                @map("payload")
+  status         String              @db.VarChar(50) @map("status")
+  httpStatus     Int?                @map("http_status")
+  responseBody   String?             @db.LongText @map("response_body")
+  errorMessage   String?             @db.LongText @map("error_message")
+  attemptCount   Int                 @default(0) @map("attempt_count")
+  nextRetryAt    DateTime?           @db.DateTime(0) @map("next_retry_at")
+  deliveredAt    DateTime?           @db.DateTime(0) @map("delivered_at")
+  createdAt      DateTime            @default(now()) @db.DateTime(0) @map("created_at")
+  updatedAt      DateTime            @updatedAt @db.DateTime(0) @map("updated_at")
+
+  subscription WebhookSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId])
+  @@index([status])
+  @@index([eventType])
+  @@index([createdAt])
+  @@index([nextRetryAt])
+  @@map("webhook_deliveries")
+}

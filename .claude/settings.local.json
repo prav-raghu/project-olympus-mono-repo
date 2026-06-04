@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm install *)",
+      "Bash(pnpm --filter @project-olympus/email build)",
+      "Bash(pnpm --filter @project-olympus/database build)",
+      "Bash(pnpm --filter @project-olympus/schedule-api build)",
+      "Bash(pnpm --filter @project-olympus/admin-api build)",
+      "Bash(pnpm --filter @project-olympus/database prisma:generate)",
+      "Bash(node -e 'const p=require\\('\\\\''./__TRACKED_VAR__/package.json'\\\\''\\); const s=p.scripts||{}; console.log\\('\\\\''name:'\\\\'', p.name\\); Object.entries\\(s\\).forEach\\(\\([k,v]\\)=>{ if\\(/build|dev|start|debug/.test\\(k\\)\\) console.log\\('\\\\'' '\\\\'',k+'\\\\'':'\\\\'', v\\) }\\)')",
+      "Bash(pnpm --filter \"@project-olympus/customer-api\" build)",
+      "Bash(pnpm --filter \"admin-web\" build)",
+      "Bash(pnpm --filter \"customer-web\" build)",
+      "Bash(pnpm --filter @project-olympus/api-gateway build)",
+      "Bash(pnpm --filter @project-olympus/admin-web build)",
+      "Bash(pnpm --filter @project-olympus/customer-api build)",
+      "Bash(pnpm --filter admin-api build)",
+      "Bash(node -e ' *)",
+      "Bash(grep -n \"FastifyInstrumentation\\\\|instrumentation-fastify\" common/logging/src/core/opentelemetry.ts)",
+      "Bash(grep -n \"strict.*false\\\\|ajv.*strict\" apps/backend/admin-api/src/application.ts apps/backend/customer-api/src/application.ts apps/backend/schedule-api/src/application.ts)",
+      "Bash(grep -n \"login:fail\\\\|LOGIN_MAX_ATTEMPTS\" apps/backend/admin-api/src/services/auth.service.ts apps/backend/customer-api/src/services/auth.service.ts)",
+      "Bash(pnpm add *)",
+      "Bash(pnpm remove *)",
+      "Bash(node -e \"const p=require\\('./apps/backend/admin-api/package.json'\\);console.log\\('otplib:',p.dependencies.otplib\\)\")",
+      "Bash(node -e \"const p=require\\('./common/database/package.json'\\);console.log\\('prisma:',p.dependencies.prisma,'client:',p.dependencies['@prisma/client']\\)\")",
+      "Bash(node -e \"const p=require\\('./common/logging/package.json'\\);console.log\\('pino:',p.dependencies.pino,'fastify-inst:',p.dependencies['@opentelemetry/instrumentation-fastify']\\)\")",
+      "Bash(pnpm prisma:generate)",
+      "Bash(node -e \"const o=require\\('./node_modules/.pnpm/otplib@13.4.0/node_modules/otplib/dist/index.cjs'\\);console.log\\(Object.keys\\(o\\)\\)\")",
+      "Bash(pnpm --filter @project-olympus/database add @prisma/adapter-pg pg)"
+    ]
+  }
+}

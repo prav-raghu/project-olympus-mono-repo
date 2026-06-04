@@ -1,0 +1,24 @@
+{
+  "name": "@project-olympus/utilities",
+  "version": "1.0.0",
+  "description": "Common utility functions for the project.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "update-deps": "pnpm update --latest"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.6.0",
+    "jest": "^30.3.0",
+    "ts-jest": "^29.4.9",
+    "typescript": "^5.9.3"
+  },
+  "license": "PRIVATE",
+  "author": "Pravir Raghu"
+}

@@ -1,0 +1,28 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/@project-olympus/db-schedule"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model ScheduledJob {
+  id          String    @id @db.VarChar(36) @map("id")
+  name        String    @db.VarChar(200) @map("name")
+  cronExpr    String    @db.VarChar(100) @map("cron_expr")
+  payload     Json?     @map("payload")
+  status      String    @db.VarChar(50) @default("pending") @map("status")
+  lastRunAt   DateTime? @db.DateTime(0) @map("last_run_at")
+  nextRunAt   DateTime? @db.DateTime(0) @map("next_run_at")
+  isActive    Boolean   @default(true) @map("is_active")
+  createdAt   DateTime  @default(now()) @db.DateTime(0) @map("created_at")
+  updatedAt   DateTime  @updatedAt @db.DateTime(0) @map("updated_at")
+  createdBy   String    @default("SYSTEM") @db.VarChar(36) @map("created_by")
+  modifiedBy  String    @default("SYSTEM") @db.VarChar(36) @map("modified_by")
+
+  @@index([status, isActive])
+  @@index([nextRunAt])
+  @@index([createdAt(sort: Desc), id])
+  @@map("scheduled_jobs")
+}

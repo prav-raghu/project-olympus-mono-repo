@@ -1,0 +1,19 @@
+{
+  "name": "@project-olympus/cache",
+  "version": "1.0.0",
+  "description": "Provides caching utilities and types for the chat modules.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "update-deps": "pnpm update --latest"
+  },
+  "dependencies": {
+    "@project-olympus/logging": "workspace:*",
+    "ioredis": "^5.10.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "author": "Pravir Raghu"
+}

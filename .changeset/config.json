@@ -1,0 +1,19 @@
+{
+    "$schema": "https://unpkg.com/@changesets/config@3.1.1/schema.json",
+    "changelog": ["@changesets/changelog-github", { "repo": "your-org/project-olympus" }],
+    "commit": false,
+    "fixed": [],
+    "linked": [
+        [
+            "@project-olympus/api-gateway",
+            "@project-olympus/customer-api",
+            "@project-olympus/admin-api",
+            "@project-olympus/schedule-api"
+        ]
+    ],
+    "access": "restricted",
+    "baseBranch": "main",
+    "updateInternalDependencies": "patch",
+    "ignore": [],
+    "___privateForChangesetsToRemove_experimentalSafeMode": false
+}

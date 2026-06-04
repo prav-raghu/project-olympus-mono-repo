@@ -1,0 +1,24 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/@project-olympus/db-customer"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model CustomerProfile {
+  id         String   @id @db.VarChar(36) @map("id")
+  azureOid   String   @unique @db.VarChar(36) @map("azure_oid")
+  email      String   @unique @db.VarChar(255) @map("email")
+  displayName String? @db.VarChar(200) @map("display_name")
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @db.DateTime(0) @map("created_at")
+  updatedAt  DateTime @updatedAt @db.DateTime(0) @map("updated_at")
+  createdBy  String   @default("SYSTEM") @db.VarChar(36) @map("created_by")
+  modifiedBy String   @default("SYSTEM") @db.VarChar(36) @map("modified_by")
+
+  @@index([isActive])
+  @@index([createdAt(sort: Desc), id])
+  @@map("customer_profiles")
+}

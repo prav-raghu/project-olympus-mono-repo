@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm --filter @project-olympus/customer-web build)",
+      "Bash(pnpm list *)",
+      "Bash(pnpm --filter admin-web build)"
+    ]
+  }
+}

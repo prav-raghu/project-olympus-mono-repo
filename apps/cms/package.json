@@ -1,0 +1,18 @@
+{
+  "name": "cms",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Directus CMS — managed via Docker (see dev-ops/docker-compose.dev.yml)",
+  "scripts": {
+    "dev": "echo 'Directus runs as a Docker container. Run: docker compose -f ../../dev-ops/docker-compose.dev.yml up directus'",
+    "build": "echo 'No build step — Directus is a Docker image'",
+    "start": "echo 'Start via Docker compose'"
+  },
+  "dependencies": {
+    "@directus/sdk": "^17.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "author": "Pravir Raghu"
+}

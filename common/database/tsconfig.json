@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+        "rootDir": "src",
+        "outDir": "dist",
+        "declaration": true,
+        "declarationMap": true,
+        "emitDeclarationOnly": false,
+        "module": "Node16",
+        "moduleResolution": "Node16",
+        "target": "ES2022",
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "resolveJsonModule": true,
+        "forceConsistentCasingInFileNames": true,
+        "paths": {
+            "@project-olympus/db-admin": ["./node_modules/@project-olympus/db-admin"],
+            "@project-olympus/db-customer": ["./node_modules/@project-olympus/db-customer"],
+            "@project-olympus/db-schedule": ["./node_modules/@project-olympus/db-schedule"],
+            "@project-olympus/db-shared": ["./node_modules/@project-olympus/db-shared"]
+        }
+    },
+    "include": ["src"]
+}
