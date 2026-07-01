@@ -18,7 +18,37 @@ import { UpdateWebhookDto } from './dto/update-webhook.dto';
 import { AzureAuthGuard } from '../auth/guards/azure-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AzureUser } from '@project-olympus/auth';
-import type { CreateWebhookSubscriptionDto, UpdateWebhookSubscriptionDto } from '@project-olympus/types';
+import {
+  type CreateWebhookSubscriptionDto,
+  type UpdateWebhookSubscriptionDto,
+  WebhookEventType,
+} from '@project-olympus/types';
+
+function toWebhookEventTypes(events: string[]): WebhookEventType[] {
+  const validValues = new Set(Object.values(WebhookEventType));
+  return events.filter((event): event is WebhookEventType => validValues.has(event as WebhookEventType));
+}
+
+function toCreateWebhookSubscriptionDto(dto: CreateWebhookDto): CreateWebhookSubscriptionDto {
+  return {
+    url: dto.url,
+    secret: dto.secret ?? '',
+    events: toWebhookEventTypes(dto.events),
+    retryCount: dto.retryCount,
+    timeoutSeconds: dto.timeoutSeconds,
+  };
+}
+
+function toUpdateWebhookSubscriptionDto(dto: UpdateWebhookDto): UpdateWebhookSubscriptionDto {
+  return {
+    url: dto.url,
+    secret: dto.secret,
+    events: dto.events ? toWebhookEventTypes(dto.events) : undefined,
+    isActive: dto.isActive,
+    retryCount: dto.retryCount,
+    timeoutSeconds: dto.timeoutSeconds,
+  };
+}
 
 @ApiTags('Webhooks')
 @ApiBearerAuth()
@@ -31,7 +61,7 @@ export class WebhooksController {
   @Version('1')
   @ApiOperation({ summary: 'Create webhook subscription' })
   public async create(@Body() dto: CreateWebhookDto, @CurrentUser() user: AzureUser) {
-    return this.webhooksService.createSubscription(dto as unknown as CreateWebhookSubscriptionDto, user.id);
+    return this.webhooksService.createSubscription(toCreateWebhookSubscriptionDto(dto), user.id);
   }
 
   @Get()
@@ -62,7 +92,7 @@ export class WebhooksController {
     const result = await this.webhooksService.updateSubscription(
       id,
       user.id,
-      dto as unknown as UpdateWebhookSubscriptionDto,
+      toUpdateWebhookSubscriptionDto(dto),
     );
     if (!result.isSuccessful) throw new NotFoundException(result.message);
     return result;

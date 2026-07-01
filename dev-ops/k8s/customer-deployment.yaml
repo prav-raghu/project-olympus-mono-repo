@@ -18,20 +18,49 @@ spec:
         - name: customer-api
           image: your-docker-repo/customer-api:latest
           ports:
-            - containerPort: 3000
+            - containerPort: 4002
           env:
-            - name: DATABASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: customer-api-secrets
-                  key: database-url
-            - name: JWT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: customer-api-secrets
-                  key: jwt-secret
             - name: NODE_ENV
               value: production
+            - name: PORT
+              value: "4002"
+            - name: DATABASE_URL_CUSTOMER
+              valueFrom:
+                secretKeyRef:
+                  name: customer-api-secrets
+                  key: database-url-customer
+            - name: DATABASE_URL_SHARED
+              valueFrom:
+                secretKeyRef:
+                  name: customer-api-secrets
+                  key: database-url-shared
+            - name: AZURE_TENANT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: customer-api-secrets
+                  key: azure-tenant-id
+            - name: AZURE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: customer-api-secrets
+                  key: azure-client-id
+            - name: AZURE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: customer-api-secrets
+                  key: azure-client-secret
+            - name: AZURE_API_AUDIENCE
+              valueFrom:
+                secretKeyRef:
+                  name: customer-api-secrets
+                  key: azure-api-audience
+            - name: AZURE_AUTHORITY
+              valueFrom:
+                secretKeyRef:
+                  name: customer-api-secrets
+                  key: azure-authority
+      imagePullSecrets:
+        - name: regcred
 ---
 apiVersion: v1
 kind: Service
@@ -40,7 +69,7 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - port: 3000
-      targetPort: 3000
+    - port: 4002
+      targetPort: 4002
   selector:
     app: customer-api

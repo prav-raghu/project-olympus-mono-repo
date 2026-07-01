@@ -4,9 +4,9 @@ import { Component } from '@angular/core';
   selector: 'app-users',
   standalone: true,
   template: `
-    <div class="min-h-screen bg-gray-50 p-8">
-      <h1 class="text-3xl font-bold text-gray-800">Users</h1>
-      <p class="mt-2 text-gray-600">User management.</p>
+    <div class="min-h-screen bg-background p-8">
+      <h1 class="text-3xl font-bold text-foreground">Users</h1>
+      <p class="mt-2 text-muted-foreground">User management.</p>
     </div>
   `,
 })

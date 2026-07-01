@@ -165,7 +165,7 @@ export class BatchService {
       options: { continueOnError: false, validateBeforeExecute: true, maxBatchSize: 500 },
     };
     return this.executeBatchWithTransaction(operation, async (data, tx) => {
-      return tx.user.delete({ where: { id: data.userId } });
+      return tx.user.update({ where: { id: data.userId }, data: { isActive: false } });
     });
   }
 

@@ -26,7 +26,7 @@ variable "project_name" {
 }
 
 variable "customer_api_image" {
-  description = "Full ACR image URI for customer-api (e.g. khuladev.azurecr.io/customer-api:latest)"
+  description = "Full ACR image URI for customer-api (e.g. projectolympusdev.azurecr.io/customer-api:latest)"
   type        = string
 }
 
@@ -35,13 +35,71 @@ variable "admin_api_image" {
   type        = string
 }
 
+variable "api_gateway_image" {
+  description = "Full ACR image URI for api-gateway"
+  type        = string
+}
+
+variable "schedule_api_image" {
+  description = "Full ACR image URI for schedule-api"
+  type        = string
+}
+
 variable "customer_web_image" {
   description = "Full ACR image URI for customer-web (Angular)"
   type        = string
 }
 
-variable "database_url" {
-  description = "PostgreSQL connection string (Supabase)"
+variable "database_url_admin" {
+  description = "MySQL connection string for the app_admin database"
+  type        = string
+  sensitive   = true
+}
+
+variable "database_url_customer" {
+  description = "MySQL connection string for the app_customer database"
+  type        = string
+  sensitive   = true
+}
+
+variable "database_url_schedule" {
+  description = "MySQL connection string for the app_schedule database"
+  type        = string
+  sensitive   = true
+}
+
+variable "database_url_shared" {
+  description = "MySQL connection string for the app_shared database"
+  type        = string
+  sensitive   = true
+}
+
+variable "azure_tenant_id" {
+  description = "Azure AD tenant ID for MSAL"
+  type        = string
+  sensitive   = true
+}
+
+variable "azure_client_id" {
+  description = "Azure AD application (client) ID for MSAL"
+  type        = string
+  sensitive   = true
+}
+
+variable "azure_client_secret" {
+  description = "Azure AD client secret for MSAL"
+  type        = string
+  sensitive   = true
+}
+
+variable "azure_api_audience" {
+  description = "Azure AD API audience (application ID URI) for token validation"
+  type        = string
+  sensitive   = true
+}
+
+variable "azure_authority" {
+  description = "Azure AD authority URL — https://login.microsoftonline.com/<tenant-id>"
   type        = string
   sensitive   = true
 }
@@ -112,6 +170,30 @@ variable "admin_api_min_replicas" {
 
 variable "admin_api_max_replicas" {
   description = "Maximum replicas for admin-api"
+  type        = number
+  default     = 5
+}
+
+variable "api_gateway_min_replicas" {
+  description = "Minimum replicas for api-gateway (0 = scale-to-zero)"
+  type        = number
+  default     = 0
+}
+
+variable "api_gateway_max_replicas" {
+  description = "Maximum replicas for api-gateway"
+  type        = number
+  default     = 10
+}
+
+variable "schedule_api_min_replicas" {
+  description = "Minimum replicas for schedule-api (0 = scale-to-zero)"
+  type        = number
+  default     = 0
+}
+
+variable "schedule_api_max_replicas" {
+  description = "Maximum replicas for schedule-api"
   type        = number
   default     = 5
 }

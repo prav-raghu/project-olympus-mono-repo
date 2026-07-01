@@ -118,7 +118,7 @@ export class WebhooksService {
     if (!existing) {
       return { isSuccessful: false, message: SUBSCRIPTION_NOT_FOUND };
     }
-    await this.prisma.webhookSubscription.delete({ where: { id } });
+    await this.prisma.webhookSubscription.update({ where: { id }, data: { isActive: false } });
     return { isSuccessful: true, data: { id } };
   }
 

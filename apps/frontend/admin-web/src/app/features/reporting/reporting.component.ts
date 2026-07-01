@@ -4,9 +4,9 @@ import { Component } from '@angular/core';
   selector: 'app-reporting',
   standalone: true,
   template: `
-    <div class="min-h-screen bg-gray-50 p-8">
-      <h1 class="text-3xl font-bold text-gray-800">Reporting</h1>
-      <p class="mt-2 text-gray-600">Reports and analytics.</p>
+    <div class="min-h-screen bg-background p-8">
+      <h1 class="text-3xl font-bold text-foreground">Reporting</h1>
+      <p class="mt-2 text-muted-foreground">Reports and analytics.</p>
     </div>
   `,
 })

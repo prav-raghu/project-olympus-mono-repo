@@ -46,12 +46,12 @@ resource "azurerm_cdn_profile" "spa" {
 }
 
 resource "azurerm_cdn_endpoint" "spa" {
-  name                = "${var.project_name}-${var.environment}-admin-web"
-  profile_name        = azurerm_cdn_profile.spa.name
-  location            = "global"
-  resource_group_name = var.resource_group_name
-  is_http_allowed     = false
-  is_https_allowed    = true
+  name                          = "${var.project_name}-${var.environment}-admin-web"
+  profile_name                  = azurerm_cdn_profile.spa.name
+  location                      = "global"
+  resource_group_name           = var.resource_group_name
+  is_http_allowed               = false
+  is_https_allowed              = true
   querystring_caching_behaviour = "IgnoreQueryString"
 
   origin {

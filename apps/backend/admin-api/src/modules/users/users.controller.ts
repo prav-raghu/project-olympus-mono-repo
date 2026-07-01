@@ -15,7 +15,6 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ChangePasswordDto } from './dto/change-password.dto';
 import { Verify2FADto } from './dto/verify-2fa.dto';
 import { AzureAuthGuard } from '../auth/guards/azure-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -104,16 +103,6 @@ export class UsersController {
     @Body() dto: UpdateUserDto,
   ): Promise<unknown> {
     return this.usersService.updateProfile(user.id, dto);
-  }
-
-  @Patch('change-password')
-  @Version('1')
-  @ApiOperation({ summary: 'Change own password' })
-  public async changePassword(
-    @CurrentUser() user: AzureUser,
-    @Body() dto: ChangePasswordDto,
-  ): Promise<unknown> {
-    return this.usersService.changePassword(user.id, dto.currentPassword, dto.newPassword);
   }
 
   // #endregion

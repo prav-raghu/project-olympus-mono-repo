@@ -7,14 +7,18 @@ FROM base AS builder
 WORKDIR /app
 COPY . .
 RUN pnpm install --frozen-lockfile
-RUN pnpm --filter @project-olympus-template/database prisma:generate
-RUN pnpm --filter "@project-olympus-template/admin-api..." build
-RUN pnpm deploy --filter @project-olympus-template/admin-api --prod /prod/admin-api
+RUN pnpm --filter @project-olympus/database prisma:generate
+RUN pnpm --filter "@project-olympus/admin-api..." build
+RUN pnpm deploy --filter @project-olympus/admin-api --prod /prod/admin-api
 
 FROM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=builder /prod/admin-api .
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-EXPOSE 3002
+RUN addgroup -S nodegrp && adduser -S nodeusr -G nodegrp
+COPY --from=builder --chown=nodeusr:nodegrp /prod/admin-api .
+COPY --from=builder --chown=nodeusr:nodegrp /app/node_modules/.prisma ./node_modules/.prisma
+USER nodeusr
+EXPOSE 4001
+HEALTHCHECK --interval=15s --timeout=5s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:4001/health || exit 1
 CMD ["node", "dist/main.js"]

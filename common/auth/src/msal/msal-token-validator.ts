@@ -31,15 +31,30 @@ export class MsalTokenValidator {
 
         const audience = Array.isArray(this.config.audience) ? this.config.audience : [this.config.audience];
 
-        const claims = jwt.verify(token, publicKey, {
+        const verified = jwt.verify(token, publicKey, {
             algorithms: ['RS256'],
             audience: audience as [string, ...string[]],
             issuer: [
                 `https://login.microsoftonline.com/${this.config.tenantId}/v2.0`,
                 `https://sts.windows.net/${this.config.tenantId}/`,
             ],
-        }) as unknown as MsalTokenClaims;
+        });
 
-        return claims;
+        if (typeof verified === 'string' || !this.isMsalTokenClaims(verified)) {
+            throw new Error('Invalid token claims');
+        }
+
+        return verified;
+    }
+
+    private isMsalTokenClaims(payload: jwt.JwtPayload): payload is MsalTokenClaims & jwt.JwtPayload {
+        return (
+            typeof payload['oid'] === 'string' &&
+            typeof payload['sub'] === 'string' &&
+            typeof payload['iss'] === 'string' &&
+            (typeof payload['aud'] === 'string' || Array.isArray(payload['aud'])) &&
+            typeof payload['exp'] === 'number' &&
+            typeof payload['iat'] === 'number'
+        );
     }
 }

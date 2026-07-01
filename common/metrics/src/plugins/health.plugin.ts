@@ -74,11 +74,13 @@ export class HealthService {
   }
 }
 
+function getNodeProcess(): NodeJS.Process | null {
+  return typeof process === 'undefined' ? null : process;
+}
+
 function getMemoryHealth(): HealthCheckResult {
-  // [process is available at runtime in Node — no DOM lib needed]
-  const mem = (globalThis as Record<string, unknown>)['process']
-    ? (globalThis as unknown as { process: NodeJS.Process }).process.memoryUsage()
-    : null;
+  const nodeProcess = getNodeProcess();
+  const mem = nodeProcess ? nodeProcess.memoryUsage() : null;
 
   if (!mem) return { status: 'healthy' };
 

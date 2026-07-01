@@ -47,7 +47,7 @@ Files under `.claude/rules/` load automatically when a matching file enters cont
 
 This project provisions and deploys to **Azure exclusively** (Container Apps/AKS, Azure Database for MySQL Flexible Server, Azure Cache for Redis, Azure Blob Storage, Application Insights) — see `infrastructure.md`. No other cloud provider is used.
 
-⚠️ **Known drift**: `dev-ops/docker-compose.yml`, `dev-ops/docker/*.Dockerfile`, `dev-ops/k8s/*.yaml`, and `infrastructure/terraform/azure/main.tf` currently still reference an earlier Postgres + custom-JWT iteration (wrong ports, `JWT_SECRET`, single `DATABASE_URL`, stale package scope). Treat `infrastructure.md` and `rules/docker.md` as the authoritative contract, not the current file contents, until these are reconciled.
+`dev-ops/docker-compose.yml`, `dev-ops/docker/*.Dockerfile`, `dev-ops/k8s/*.yaml`, and `infrastructure/terraform/azure/*` have been reconciled to the MySQL + Azure MSAL + multi-schema `DATABASE_URL_*` + ports 4000–4004 target state described in `infrastructure.md` and `rules/docker.md`. Remaining known gaps: `infrastructure/terraform/azure/environments/staging.tfvars` and `prod.tfvars` (only `dev.tfvars` was reconciled) and `infrastructure/terraform/azure/terraform.tfvars.example` still reference the old `khula*`/Postgres-era naming; the `key-vault` module has a pre-existing `sensitive` value used in a `for_each` (Terraform-invalid, blocks `validate` regardless of secret content); `static-site` module's `outputs.tf` references a CDN attribute not in the pinned `azurerm` provider version.
 
 ## Skills (invoke with /name or auto-invoked by description match)
 
@@ -101,7 +101,7 @@ Requires Python 3.x. This is optional — `.claude/skills/ui-ux-pro-max/SKILL.md
 ## Folder structure (immutable)
 
 ```text
-apps/backend/        NestJS services (api-gateway, admin-api, customer-api, schedule-api)
+apps/backend/        NestJS services (api-gateway, admin-api, customer-api, schedule-api, partner-api)
 apps/frontend/        Angular (admin-web and customer-web)
 apps/mobile/           Ionic Angular + Capacitor (customer-mobile)
 apps/cms/               Directus (Docker-based, managed independently)
@@ -156,6 +156,7 @@ pnpm — always use `pnpm`, never `npm` or `yarn`. Internal deps: `workspace:*`.
 | admin-api | 4001 |
 | customer-api | 4002 |
 | schedule-api | 4003 |
+| partner-api | 4004 |
 | admin-web (dev) | 4200 |
 | customer-web (dev) | 5173 |
 

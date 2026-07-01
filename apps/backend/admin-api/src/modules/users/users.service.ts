@@ -3,7 +3,6 @@ import { ADMIN_DB } from '@project-olympus/database';
 import type { PrismaClient, User } from '@project-olympus/database';
 import type { EmailService } from '@project-olympus/email/dist/services/email.service';
 import { ADMIN_TIER_ROLES } from '@project-olympus/types';
-import { compare, hash } from 'bcrypt';
 import crypto from 'node:crypto';
 import { generateSecret, generateURI, verify as verifyOtp } from 'otplib';
 import { EnvConfig } from '../../config/env.config';
@@ -274,7 +273,6 @@ export class UsersService {
         id: crypto.randomUUID(),
         username: model.username,
         email: model.email,
-        password: await hash(model.password, 10),
         roleId: model.roleId,
         genderId: model.gender,
         age: model.age,
@@ -393,32 +391,6 @@ export class UsersService {
     result.isSuccessful = true;
     result.message = 'Profile updated successfully';
     result.data = updatedUser;
-    return result;
-  }
-
-  public async changePassword(
-    userId: string,
-    currentPassword: string,
-    newPassword: string,
-  ): Promise<{ isSuccessful: boolean; message: string }> {
-    const result = { isSuccessful: false, message: '' };
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) {
-      result.message = 'User not found';
-      return result;
-    }
-    const isPasswordValid = await compare(currentPassword, user.password ?? '');
-    if (!isPasswordValid) {
-      result.message = 'Current password is incorrect';
-      return result;
-    }
-    const hashedPassword = await hash(newPassword, 10);
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { password: hashedPassword, updatedAt: new Date() },
-    });
-    result.isSuccessful = true;
-    result.message = 'Password changed successfully';
     return result;
   }
 

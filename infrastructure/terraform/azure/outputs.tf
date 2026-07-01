@@ -8,6 +8,16 @@ output "admin_api_url" {
   value       = module.admin_api.service_url
 }
 
+output "api_gateway_url" {
+  description = "Container App URL for api-gateway"
+  value       = module.api_gateway.service_url
+}
+
+output "schedule_api_url" {
+  description = "Container App URL for schedule-api"
+  value       = module.schedule_api.service_url
+}
+
 output "customer_web_url" {
   description = "Container App URL for customer-web (Angular)"
   value       = module.customer_web.service_url
@@ -19,7 +29,7 @@ output "admin_web_cdn_hostname" {
 }
 
 output "admin_web_storage_account" {
-  description = "Storage account for admin-web — upload dist/ contents to \$web container"
+  description = "Storage account for admin-web — upload dist/ contents to $${web} container"
   value       = module.admin_web.storage_account_name
 }
 

@@ -7,11 +7,11 @@ import { RouterLink } from '@angular/router';
   standalone: true,
   imports: [RouterLink],
   template: `
-    <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4">
+    <div class="min-h-screen bg-linear-to-br from-background to-muted py-12 px-4">
       <div class="max-w-4xl mx-auto text-center">
-        <h1 class="text-5xl font-bold text-gray-800 mb-4">Welcome</h1>
-        <p class="text-xl text-gray-600 mb-8">Angular + MSAL + Tailwind CSS</p>
-        <a routerLink="/about" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+        <h1 class="text-5xl font-bold text-foreground mb-4">Welcome</h1>
+        <p class="text-xl text-muted-foreground mb-8">Angular + MSAL + Tailwind CSS</p>
+        <a routerLink="/about" class="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-colors">
           Learn More &rarr;
         </a>
       </div>

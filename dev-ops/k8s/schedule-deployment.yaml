@@ -1,63 +1,63 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: admin-api
+  name: schedule-api
   labels:
-    app: admin-api
+    app: schedule-api
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: admin-api
+      app: schedule-api
   template:
     metadata:
       labels:
-        app: admin-api
+        app: schedule-api
     spec:
       containers:
-        - name: admin-api
-          image: your-docker-repo/admin-api:latest
+        - name: schedule-api
+          image: your-docker-repo/schedule-api:latest
           ports:
-            - containerPort: 4001
+            - containerPort: 4003
           env:
             - name: NODE_ENV
               value: production
             - name: PORT
-              value: "4001"
-            - name: DATABASE_URL_ADMIN
+              value: "4003"
+            - name: DATABASE_URL_SCHEDULE
               valueFrom:
                 secretKeyRef:
-                  name: admin-api-secrets
-                  key: database-url-admin
+                  name: schedule-api-secrets
+                  key: database-url-schedule
             - name: DATABASE_URL_SHARED
               valueFrom:
                 secretKeyRef:
-                  name: admin-api-secrets
+                  name: schedule-api-secrets
                   key: database-url-shared
             - name: AZURE_TENANT_ID
               valueFrom:
                 secretKeyRef:
-                  name: admin-api-secrets
+                  name: schedule-api-secrets
                   key: azure-tenant-id
             - name: AZURE_CLIENT_ID
               valueFrom:
                 secretKeyRef:
-                  name: admin-api-secrets
+                  name: schedule-api-secrets
                   key: azure-client-id
             - name: AZURE_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: admin-api-secrets
+                  name: schedule-api-secrets
                   key: azure-client-secret
             - name: AZURE_API_AUDIENCE
               valueFrom:
                 secretKeyRef:
-                  name: admin-api-secrets
+                  name: schedule-api-secrets
                   key: azure-api-audience
             - name: AZURE_AUTHORITY
               valueFrom:
                 secretKeyRef:
-                  name: admin-api-secrets
+                  name: schedule-api-secrets
                   key: azure-authority
       imagePullSecrets:
         - name: regcred
@@ -65,11 +65,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: admin-api
+  name: schedule-api
 spec:
   type: ClusterIP
   ports:
-    - port: 4001
-      targetPort: 4001
+    - port: 4003
+      targetPort: 4003
   selector:
-    app: admin-api
+    app: schedule-api

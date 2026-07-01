@@ -2,7 +2,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import { ADMIN_DB } from '@project-olympus/database';
 import type { PrismaClient } from '@project-olympus/database';
 import { Logger } from '@project-olympus/logging';
-import type { IPartner } from './interfaces/partner.interface';
+import type { IPartner, PartnerStatus } from './interfaces/partner.interface';
 import type { CreatePartnerDto } from './dto/create-partner.dto';
 import type { UpdatePartnerDto } from './dto/update-partner.dto';
 
@@ -22,12 +22,8 @@ interface PartnerResult {
 
 const PARTNER_SELECT = {
   id: true,
-  name: true,
+  username: true,
   email: true,
-  contactName: true,
-  phone: true,
-  website: true,
-  status: true,
   isActive: true,
   azureOid: true,
   createdAt: true,
@@ -35,6 +31,40 @@ const PARTNER_SELECT = {
   createdBy: true,
   modifiedBy: true,
 } as const;
+
+type PartnerRecord = {
+  id: string;
+  username: string;
+  email: string;
+  isActive: boolean;
+  azureOid: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  createdBy: string;
+  modifiedBy: string;
+};
+
+function toPartnerStatus(isActive: boolean): PartnerStatus {
+  return isActive ? 'active' : 'suspended';
+}
+
+function toPartner(record: PartnerRecord): IPartner {
+  return {
+    id: record.id,
+    name: record.username,
+    email: record.email,
+    contactName: null,
+    phone: null,
+    website: null,
+    status: toPartnerStatus(record.isActive),
+    isActive: record.isActive,
+    azureOid: record.azureOid,
+    createdAt: record.createdAt,
+    updatedAt: record.updatedAt,
+    createdBy: record.createdBy,
+    modifiedBy: record.modifiedBy,
+  };
+}
 
 @Injectable()
 export class PartnersService {
@@ -50,9 +80,8 @@ export class PartnersService {
       isActive: true,
       ...(search && {
         OR: [
-          { name: { contains: search } },
+          { username: { contains: search } },
           { email: { contains: search } },
-          { contactName: { contains: search } },
         ],
       }),
     };
@@ -68,7 +97,7 @@ export class PartnersService {
       this.prisma.user.count({ where }),
     ]);
 
-    return { isSuccessful: true, data: items as unknown as IPartner[], total, page, pageSize };
+    return { isSuccessful: true, data: items.map(toPartner), total, page, pageSize };
   }
 
   public async findById(id: string): Promise<PartnerResult> {
@@ -77,7 +106,7 @@ export class PartnersService {
       select: PARTNER_SELECT,
     });
     if (!item) return { isSuccessful: false, message: 'Partner not found' };
-    return { isSuccessful: true, data: item as unknown as IPartner };
+    return { isSuccessful: true, data: toPartner(item) };
   }
 
   // #endregion
@@ -104,7 +133,7 @@ export class PartnersService {
     });
 
     this.logger.info('Partner created', { id: item.id, email: item.email });
-    return { isSuccessful: true, data: item as unknown as IPartner };
+    return { isSuccessful: true, data: toPartner(item) };
   }
 
   public async update(id: string, dto: UpdatePartnerDto, userId: string): Promise<PartnerResult> {
@@ -122,7 +151,7 @@ export class PartnersService {
       select: PARTNER_SELECT,
     });
 
-    return { isSuccessful: true, data: item as unknown as IPartner };
+    return { isSuccessful: true, data: toPartner(item) };
   }
 
   public async softDelete(id: string, userId: string): Promise<{ isSuccessful: boolean; message?: string }> {

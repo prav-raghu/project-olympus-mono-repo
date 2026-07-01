@@ -30,12 +30,19 @@ services:
             dockerfile: dev-ops/docker/api-gateway.Dockerfile
         container_name: api-gateway
         expose:
-            - "3000"
+            - "4000"
         environment:
             - NODE_ENV=production
-            - JWT_SECRET=${JWT_SECRET}
-            - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
-            - DATABASE_URL=${DATABASE_URL}
+            - PORT=4000
+            - AZURE_TENANT_ID=${AZURE_TENANT_ID}
+            - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+            - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+            - AZURE_API_AUDIENCE=${AZURE_API_AUDIENCE}
+            - AZURE_AUTHORITY=${AZURE_AUTHORITY}
+            - DATABASE_URL_ADMIN=${DATABASE_URL_ADMIN}
+            - DATABASE_URL_CUSTOMER=${DATABASE_URL_CUSTOMER}
+            - DATABASE_URL_SCHEDULE=${DATABASE_URL_SCHEDULE}
+            - DATABASE_URL_SHARED=${DATABASE_URL_SHARED}
             - REDIS_HOST=redis
             - REDIS_PORT=6379
             - REDIS_PASSWORD=${REDIS_PASSWORD}
@@ -52,7 +59,7 @@ services:
             redis:
                 condition: service_healthy
         healthcheck:
-            test: ["CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1"]
+            test: ["CMD-SHELL", "wget -qO- http://localhost:4000/health || exit 1"]
             interval: 30s
             timeout: 10s
             retries: 3
@@ -65,12 +72,17 @@ services:
             dockerfile: dev-ops/docker/customer-api.Dockerfile
         container_name: customer-api
         expose:
-            - "3001"
+            - "4002"
         environment:
             - NODE_ENV=production
-            - DATABASE_URL=${DATABASE_URL}
-            - JWT_SECRET=${JWT_SECRET}
-            - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+            - PORT=4002
+            - AZURE_TENANT_ID=${AZURE_TENANT_ID}
+            - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+            - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+            - AZURE_API_AUDIENCE=${AZURE_API_AUDIENCE}
+            - AZURE_AUTHORITY=${AZURE_AUTHORITY}
+            - DATABASE_URL_CUSTOMER=${DATABASE_URL_CUSTOMER}
+            - DATABASE_URL_SHARED=${DATABASE_URL_SHARED}
             - REDIS_HOST=redis
             - REDIS_PORT=6379
             - REDIS_PASSWORD=${REDIS_PASSWORD}
@@ -79,12 +91,12 @@ services:
         networks:
             - app-network
         depends_on:
-            postgres:
+            mysql:
                 condition: service_healthy
             redis:
                 condition: service_healthy
         healthcheck:
-            test: ["CMD-SHELL", "wget -qO- http://localhost:3001/ping || exit 1"]
+            test: ["CMD-SHELL", "wget -qO- http://localhost:4002/health || exit 1"]
             interval: 30s
             timeout: 10s
             retries: 3
@@ -97,28 +109,31 @@ services:
             dockerfile: dev-ops/docker/admin-api.Dockerfile
         container_name: admin-api
         expose:
-            - "3002"
+            - "4001"
         environment:
             - NODE_ENV=production
-            - DATABASE_URL=${DATABASE_URL}
-            - JWT_SECRET=${JWT_SECRET}
-            - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+            - PORT=4001
+            - AZURE_TENANT_ID=${AZURE_TENANT_ID}
+            - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+            - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+            - AZURE_API_AUDIENCE=${AZURE_API_AUDIENCE}
+            - AZURE_AUTHORITY=${AZURE_AUTHORITY}
+            - DATABASE_URL_ADMIN=${DATABASE_URL_ADMIN}
+            - DATABASE_URL_SHARED=${DATABASE_URL_SHARED}
             - REDIS_HOST=redis
             - REDIS_PORT=6379
             - REDIS_PASSWORD=${REDIS_PASSWORD}
             - CORS_ORIGIN=${CORS_ORIGIN}
             - ADMIN_WEB_URL=${ADMIN_WEB_URL}
-            - PASSWORD_RESET_EXPIRATION_MINUTES=${PASSWORD_RESET_EXPIRATION_MINUTES:-60}
-            - TWO_FACTOR_ENCRYPTION_KEY=${TWO_FACTOR_ENCRYPTION_KEY}
         networks:
             - app-network
         depends_on:
-            postgres:
+            mysql:
                 condition: service_healthy
             redis:
                 condition: service_healthy
         healthcheck:
-            test: ["CMD-SHELL", "wget -qO- http://localhost:3002/ping || exit 1"]
+            test: ["CMD-SHELL", "wget -qO- http://localhost:4001/health || exit 1"]
             interval: 30s
             timeout: 10s
             retries: 3
@@ -131,25 +146,30 @@ services:
             dockerfile: dev-ops/docker/schedule-api.Dockerfile
         container_name: schedule-api
         expose:
-            - "3003"
+            - "4003"
         environment:
             - NODE_ENV=production
-            - DATABASE_URL=${DATABASE_URL}
-            - JWT_SECRET=${JWT_SECRET}
+            - PORT=4003
+            - AZURE_TENANT_ID=${AZURE_TENANT_ID}
+            - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+            - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+            - AZURE_API_AUDIENCE=${AZURE_API_AUDIENCE}
+            - AZURE_AUTHORITY=${AZURE_AUTHORITY}
+            - DATABASE_URL_SCHEDULE=${DATABASE_URL_SCHEDULE}
+            - DATABASE_URL_SHARED=${DATABASE_URL_SHARED}
             - REDIS_HOST=redis
             - REDIS_PORT=6379
             - REDIS_PASSWORD=${REDIS_PASSWORD}
-            - SCHEDULE_API_KEY=${SCHEDULE_API_KEY}
             - CORS_ORIGIN=${CORS_ORIGIN}
         networks:
             - app-network
         depends_on:
-            postgres:
+            mysql:
                 condition: service_healthy
             redis:
                 condition: service_healthy
         healthcheck:
-            test: ["CMD-SHELL", "wget -qO- http://localhost:3003/ping || exit 1"]
+            test: ["CMD-SHELL", "wget -qO- http://localhost:4003/health || exit 1"]
             interval: 30s
             timeout: 10s
             retries: 3
@@ -162,7 +182,7 @@ services:
             dockerfile: Dockerfile
         container_name: customer-web
         expose:
-            - "3000"
+            - "5173"
         environment:
             - API_BASE_URL=http://localhost/api
         networks:
@@ -175,29 +195,30 @@ services:
             dockerfile: Dockerfile
         container_name: admin-web
         expose:
-            - "5174"
+            - "4200"
         environment:
             - VITE_API_URL=http://localhost/api
         networks:
             - app-network
         restart: unless-stopped
 
-    postgres:
-        image: postgres:16-alpine
-        container_name: postgres
+    mysql:
+        image: mysql:8.0
+        container_name: mysql
         restart: unless-stopped
         environment:
-            POSTGRES_USER: ${POSTGRES_USER}
-            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-            POSTGRES_DB: ${POSTGRES_DB}
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+            MYSQL_USER: ${MYSQL_USER}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
         volumes:
-            - postgres_data:/var/lib/postgresql/data
+            - mysql_data:/var/lib/mysql
+            - ../mysql-init:/docker-entrypoint-initdb.d
         networks:
             - app-network
         expose:
-            - "5432"
+            - "3306"
         healthcheck:
-            test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
             interval: 10s
             timeout: 5s
             retries: 5
@@ -234,7 +255,7 @@ networks:
         driver: bridge
 
 volumes:
-    postgres_data:
+    mysql_data:
     redis_data:
     nginx_cache:
     certbot_www:
