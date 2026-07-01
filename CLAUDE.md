@@ -91,12 +91,12 @@ Requires Python 3.x. This is optional — `.claude/skills/ui-ux-pro-max/SKILL.md
 - Match existing coding style — keep functions, do not switch to arrow functions at the class level
 - UUIDs generated at the application layer with `crypto.randomUUID()` — never `@default(uuid())` in Prisma, never DB-generated
 - No Prisma scalar list fields (`String[]`, `Int[]`) — MySQL doesn't support them; use a join table or `Json` column
-- Soft delete via `is_active: false` — never hard delete from the API
 - Do not run database migrations — leave for the user
 - Do not run Git operations — leave for the user
 - Use `#region` / `#endregion` for logical code grouping in TypeScript/C#
 - Before marking any TypeScript task complete, run `pnpm --filter <app> typecheck` — zero errors required
 - All frontend forms must implement the full validation chain — see `validation-chain.instructions.md`: client `Validators` failures show inline, server errors show in a `serverError` signal/toast, never the other way round
+- please build all apps using tsconfig tsc to ensure no build surprise errors during deployment run.
 
 ## Folder structure (immutable)
 
