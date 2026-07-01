@@ -2,14 +2,15 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import { UsersController } from '../../../src/modules/users/users.controller';
 import { UsersService } from '../../../src/modules/users/users.service';
 import { AzureAuthGuard } from '../../../src/modules/auth/guards/azure-auth.guard';
-import type { IUser } from '../../../src/modules/users/interfaces/user.interface';
 
 describe('UsersController', () => {
   let controller: UsersController;
   let usersService: UsersService;
 
   const mockUsersService = {
-    findAll: jest.fn(),
+    getOnlineUsers: jest.fn(),
+    getUserDetails: jest.fn(),
+    getUserProfile: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -30,24 +31,62 @@ describe('UsersController', () => {
   });
 
   describe('findAll', () => {
-    it('should return all users', async () => {
-      const users: IUser[] = [
-        { id: 'uuid-1', email: 'a@test.com', isActive: true, createdAt: new Date(), updatedAt: new Date() },
-      ];
-      mockUsersService.findAll.mockResolvedValue(users);
+    it('returns paged users when service resolves', async () => {
+      const response = {
+        users: [{ id: 'uuid-1', email: 'a@test.com' }],
+        total: 1,
+        page: 1,
+        pageSize: 20,
+        totalPages: 1,
+        isSuccessful: true,
+        message: 'Users retrieved successfully',
+      };
+      mockUsersService.getOnlineUsers.mockResolvedValue(response);
 
       const result = await controller.findAll();
 
-      expect(result).toEqual(users);
-      expect(usersService.findAll).toHaveBeenCalledTimes(1);
+      expect(result).toEqual(response);
+      expect(usersService.getOnlineUsers).toHaveBeenCalledWith({
+        page: 1,
+        pageSize: 20,
+        searchQuery: undefined,
+        sortBy: undefined,
+        sortOrder: undefined,
+      });
     });
 
-    it('should return empty array when no users', async () => {
-      mockUsersService.findAll.mockResolvedValue([]);
+    it('parses page and pageSize query params when provided', async () => {
+      mockUsersService.getOnlineUsers.mockResolvedValue({ users: [], total: 0 });
 
-      const result = await controller.findAll();
+      await controller.findAll('2', '50', 'jane', 'username', 'asc');
 
-      expect(result).toEqual([]);
+      expect(usersService.getOnlineUsers).toHaveBeenCalledWith({
+        page: 2,
+        pageSize: 50,
+        searchQuery: 'jane',
+        sortBy: 'username',
+        sortOrder: 'asc',
+      });
+    });
+  });
+
+  describe('findById', () => {
+    it('returns user details when found', async () => {
+      const details = { id: 'uuid-1', username: 'jane' };
+      mockUsersService.getUserDetails.mockResolvedValue(details);
+
+      const result = await controller.findById('uuid-1');
+
+      expect(result).toEqual(details);
+      expect(usersService.getUserDetails).toHaveBeenCalledWith('uuid-1');
+    });
+
+    it('returns null when user not found', async () => {
+      mockUsersService.getUserDetails.mockResolvedValue(null);
+
+      const result = await controller.findById('missing-id');
+
+      expect(result).toBeNull();
     });
   });
 });
