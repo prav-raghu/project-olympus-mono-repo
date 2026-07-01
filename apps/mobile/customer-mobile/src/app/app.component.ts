@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
+import { Capacitor } from '@capacitor/core';
 import { SplashScreen } from '@capacitor/splash-screen';
 
 @Component({
@@ -14,6 +15,8 @@ import { SplashScreen } from '@capacitor/splash-screen';
 })
 export class AppComponent implements OnInit {
   public async ngOnInit(): Promise<void> {
-    await SplashScreen.hide();
+    if (Capacitor.isNativePlatform()) {
+      await SplashScreen.hide();
+    }
   }
 }

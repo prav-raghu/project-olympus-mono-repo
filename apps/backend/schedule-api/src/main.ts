@@ -9,6 +9,9 @@ import { AzureMonitorLogger, initAzureMonitor } from '@project-olympus/logging';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseTransformInterceptor } from './common/interceptors/response-transform.interceptor';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { ADMIN_DB, type PrismaClient } from '@project-olympus/database';
+import { EmailService } from '@project-olympus/email';
+import { CronSchedulerService } from './services/cron-scheduler.service';
 
 async function bootstrap(): Promise<void> {
   initAzureMonitor('schedule-api');
@@ -47,6 +50,13 @@ async function bootstrap(): Promise<void> {
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api-docs', app, document);
   }
+
+  const prisma = app.get<PrismaClient>(ADMIN_DB);
+  const cronScheduler = new CronSchedulerService(prisma, new EmailService());
+  cronScheduler.startAll();
+  app.enableShutdownHooks();
+  process.on('SIGTERM', () => cronScheduler.stopAll());
+  process.on('SIGINT', () => cronScheduler.stopAll());
 
   const port = parseInt(String(EnvConfig.get('PORT') ?? '4003'), 10);
   await app.listen(port, '0.0.0.0');

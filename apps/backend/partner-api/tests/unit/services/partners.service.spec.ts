@@ -47,13 +47,37 @@ describe('PartnersService', () => {
 
   describe('findById', () => {
     it('should return a partner when found', async () => {
-      const partner = { id: 'p-1', name: 'Acme', email: 'acme@test.com', isActive: true };
-      mockPrisma.user.findUnique.mockResolvedValue(partner);
+      const record = {
+        id: 'p-1',
+        username: 'acme',
+        email: 'acme@test.com',
+        isActive: true,
+        azureOid: null,
+        createdAt: new Date('2026-01-01'),
+        updatedAt: new Date('2026-01-01'),
+        createdBy: 'SYSTEM',
+        modifiedBy: 'SYSTEM',
+      };
+      mockPrisma.user.findUnique.mockResolvedValue(record);
 
       const result = await service.findById('p-1');
 
       expect(result.isSuccessful).toBe(true);
-      expect(result.data).toEqual(partner);
+      expect(result.data).toEqual({
+        id: 'p-1',
+        name: 'acme',
+        email: 'acme@test.com',
+        contactName: null,
+        phone: null,
+        website: null,
+        status: 'active',
+        isActive: true,
+        azureOid: null,
+        createdAt: record.createdAt,
+        updatedAt: record.updatedAt,
+        createdBy: 'SYSTEM',
+        modifiedBy: 'SYSTEM',
+      });
     });
 
     it('should return failure when not found', async () => {

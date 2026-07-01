@@ -137,3 +137,4 @@ documentation/api-site/
 !documentation/api/README.md
 /apps/frontend/admin-web/.angular/cache
 /apps/frontend/customer-web/.angular/cache
+/apps/mobile/customer-mobile/.angular/cache

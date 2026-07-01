@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { ADMIN_DB } from '@project-olympus/database';
 import type { PrismaClient, User } from '@project-olympus/database';
-import type { EmailService } from '@project-olympus/email/dist/services/email.service';
+import { EmailService } from '@project-olympus/email';
 import { ADMIN_TIER_ROLES } from '@project-olympus/types';
 import crypto from 'node:crypto';
 import { generateSecret, generateURI, verify as verifyOtp } from 'otplib';

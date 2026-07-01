@@ -1,7 +1,7 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import { UsersService } from '../../../src/modules/users/users.service';
 import { ADMIN_DB } from '@project-olympus/database';
-import { EmailService } from '@project-olympus/email/dist/services/email.service';
+import { EmailService } from '@project-olympus/email';
 import type { CreateUserDto } from '../../../src/modules/users/dto/create-user.dto';
 
 describe('UsersService', () => {
@@ -126,7 +126,9 @@ describe('UsersService', () => {
     });
 
     it('updates the user when found', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue({ id: 'uuid-1', username: 'jane', email: 'jane@test.com' });
+      mockPrisma.user.findUnique
+        .mockResolvedValueOnce({ id: 'uuid-1', username: 'jane', email: 'jane@test.com' })
+        .mockResolvedValueOnce(null);
       mockPrisma.user.update.mockResolvedValue({ id: 'uuid-1', username: 'jane2', email: 'jane@test.com', avatar: null });
 
       const result = await service.updateProfile('uuid-1', { username: 'jane2' });

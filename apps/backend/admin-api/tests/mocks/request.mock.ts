@@ -1,4 +1,3 @@
-// [retained filename for backwards compatibility — now provides NestJS-compatible HTTP mocks]
 import type { AzureUser } from '@project-olympus/auth';
 
 export function createMockRequest(overrides: Record<string, unknown> = {}): Record<string, unknown> {
