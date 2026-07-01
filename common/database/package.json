@@ -27,7 +27,7 @@
     "update-deps": "pnpm update --latest"
   },
   "dependencies": {
-    "@nestjs/common": "^10.0.0",
+    "@nestjs/common": "^11.0.0",
     "@prisma/adapter-mariadb": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "dotenv": "^17.4.2",
