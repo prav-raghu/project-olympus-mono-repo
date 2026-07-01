@@ -40,14 +40,14 @@ Files under `.claude/rules/` load automatically when a matching file enters cont
 | `frontend.md` | `apps/frontend/**/*.ts`, `**/*.html` |
 | `mobile.md` | `apps/mobile/**/*.ts`, `**/*.html` |
 | `prisma.md` | `common/database/prisma/**`, `common/database/src/**` |
-| `docker.md` | `dev-ops/docker/**`, `dev-ops/docker-compose*.yml`, `dev-ops/k8s/**` |
+| `docker.md` | `apps/backend/*/Dockerfile`, `apps/frontend/*/Dockerfile`, `dev-ops/docker-compose*.yml`, `dev-ops/k8s/**` |
 | `testing.md` | `**/*.test.ts`, `**/*.spec.ts`, `**/tests/**/*.ts` |
 
 ## Deployment — Azure only
 
 This project provisions and deploys to **Azure exclusively** (Container Apps/AKS, Azure Database for MySQL Flexible Server, Azure Cache for Redis, Azure Blob Storage, Application Insights) — see `infrastructure.md`. No other cloud provider is used.
 
-`dev-ops/docker-compose.yml`, `dev-ops/docker/*.Dockerfile`, `dev-ops/k8s/*.yaml`, and `infrastructure/terraform/azure/*` have been reconciled to the MySQL + Azure MSAL + multi-schema `DATABASE_URL_*` + ports 4000–4004 target state described in `infrastructure.md` and `rules/docker.md`. Remaining known gaps: `infrastructure/terraform/azure/environments/staging.tfvars` and `prod.tfvars` (only `dev.tfvars` was reconciled) and `infrastructure/terraform/azure/terraform.tfvars.example` still reference the old `khula*`/Postgres-era naming; the `key-vault` module has a pre-existing `sensitive` value used in a `for_each` (Terraform-invalid, blocks `validate` regardless of secret content); `static-site` module's `outputs.tf` references a CDN attribute not in the pinned `azurerm` provider version.
+`dev-ops/docker-compose.yml`, per-service `Dockerfile`s (now under `apps/backend/*/Dockerfile`, not `dev-ops/docker/`), `dev-ops/k8s/*.yaml`, and `infrastructure/terraform/azure/*` have been reconciled to the MySQL + Azure MSAL + multi-schema `DATABASE_URL_*` + ports 4000–4004 target state described in `infrastructure.md` and `rules/docker.md`. Remaining known gaps: `infrastructure/terraform/azure/environments/staging.tfvars` and `prod.tfvars` (only `dev.tfvars` was reconciled) and `infrastructure/terraform/azure/terraform.tfvars.example` still reference the old `khula*`/Postgres-era naming; the `key-vault` module has a pre-existing `sensitive` value used in a `for_each` (Terraform-invalid, blocks `validate` regardless of secret content); `static-site` module's `outputs.tf` references a CDN attribute not in the pinned `azurerm` provider version.
 
 ## Skills (invoke with /name or auto-invoked by description match)
 

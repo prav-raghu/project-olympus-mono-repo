@@ -62,10 +62,10 @@ Scope: `@project-olympus/` for every package, apps and common alike, `kebab-case
 1. Copy the structure from an existing service (e.g. `customer-api`)
 2. Update `package.json` name and scope
 3. Update `src/config/env.config.ts` with the correct port and service name
-4. Assign the next available port (check existing: 4000, 4001, 4002, 4003)
+4. Assign the next available port (check existing: 4000, 4001, 4002, 4003, 4004)
 5. Register in `dev-ops/docker-compose.yml` and, if it needs a schema, add `schema.{service}.prisma`
 6. Add a proxy route in `api-gateway`
-7. Create a Dockerfile under `dev-ops/docker/{service-name}.Dockerfile` — see `infrastructure.md` for the pattern actually used in this repo
+7. Create a `Dockerfile` at the root of the new service (`apps/backend/{service-name}/Dockerfile`) — see `infrastructure.md` for the pattern actually used in this repo
 8. Create `.env` and `.env.example`
 9. Add dev script to root `package.json` scripts
 10. Run `pnpm install` from root
@@ -106,7 +106,7 @@ Export everything from `src/index.ts`; reference via `workspace:*` in consuming 
 [service-name]:
   build:
     context: .
-    dockerfile: dev-ops/docker/[service-name].Dockerfile
+    dockerfile: apps/backend/[service-name]/Dockerfile
   ports:
     - "[PORT]:[PORT]"
   environment:

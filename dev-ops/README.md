@@ -4,7 +4,7 @@ This directory contains the necessary configurations and scripts for deploying a
 
 ## Directory Structure
 
-- **docker/**: Contains Dockerfiles for building images for the API gateway, customer API, and admin API.
+- Dockerfiles live at the root of each service under `apps/backend/<service>/Dockerfile` (not in this directory).
 - **docker-compose.yml**: Defines the services and configurations for running the application locally using Docker Compose.
 - **docker-compose.dev.yml**: Development-focused compose file with additional tooling (Adminer, MailHog, Redis Commander).
 - **k8s/**: Contains Kubernetes deployment configurations for the API gateway, customer API, admin API, and Redis.
@@ -27,7 +27,7 @@ To get started with the project, follow these steps:
 2. **Build Docker Images**:
    You can build the Docker images for the APIs using the provided Dockerfiles. For example, to build the API gateway:
    ```
-   docker build -t project-olympus/api-gateway -f dev-ops/docker/api-gateway.Dockerfile .
+   docker build -t project-olympus/api-gateway -f apps/backend/api-gateway/Dockerfile .
    ```
 
 3. **Run with Docker Compose**:

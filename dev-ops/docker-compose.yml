@@ -2,7 +2,7 @@ services:
   api-gateway:
     build:
       context: ..
-      dockerfile: dev-ops/docker/api-gateway.Dockerfile
+      dockerfile: apps/backend/api-gateway/Dockerfile
     ports:
       - "4000:4000"
     environment:
@@ -41,7 +41,7 @@ services:
   customer-api:
     build:
       context: ..
-      dockerfile: dev-ops/docker/customer-api.Dockerfile
+      dockerfile: apps/backend/customer-api/Dockerfile
     expose:
       - "4002"
     environment:
@@ -74,7 +74,7 @@ services:
   admin-api:
     build:
       context: ..
-      dockerfile: dev-ops/docker/admin-api.Dockerfile
+      dockerfile: apps/backend/admin-api/Dockerfile
     expose:
       - "4001"
     environment:
@@ -107,7 +107,7 @@ services:
   schedule-api:
     build:
       context: ..
-      dockerfile: dev-ops/docker/schedule-api.Dockerfile
+      dockerfile: apps/backend/schedule-api/Dockerfile
     expose:
       - "4003"
     environment:

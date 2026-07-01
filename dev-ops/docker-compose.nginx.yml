@@ -27,7 +27,7 @@ services:
     api-gateway:
         build:
             context: ../../
-            dockerfile: dev-ops/docker/api-gateway.Dockerfile
+            dockerfile: apps/backend/api-gateway/Dockerfile
         container_name: api-gateway
         expose:
             - "4000"
@@ -69,7 +69,7 @@ services:
     customer-api:
         build:
             context: ../../
-            dockerfile: dev-ops/docker/customer-api.Dockerfile
+            dockerfile: apps/backend/customer-api/Dockerfile
         container_name: customer-api
         expose:
             - "4002"
@@ -106,7 +106,7 @@ services:
     admin-api:
         build:
             context: ../../
-            dockerfile: dev-ops/docker/admin-api.Dockerfile
+            dockerfile: apps/backend/admin-api/Dockerfile
         container_name: admin-api
         expose:
             - "4001"
@@ -143,7 +143,7 @@ services:
     schedule-api:
         build:
             context: ../../
-            dockerfile: dev-ops/docker/schedule-api.Dockerfile
+            dockerfile: apps/backend/schedule-api/Dockerfile
         container_name: schedule-api
         expose:
             - "4003"

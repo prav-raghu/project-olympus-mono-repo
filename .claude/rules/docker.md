@@ -1,19 +1,18 @@
 ---
 paths:
-  - "dev-ops/docker/**"
+  - "apps/backend/*/Dockerfile"
+  - "apps/frontend/*/Dockerfile"
   - "dev-ops/docker-compose*.yml"
   - "dev-ops/k8s/**"
 ---
 
 # Docker & Kubernetes Rules
 
-You are working on containerization config for this monorepo. Dockerfiles live under `dev-ops/docker/`, Kubernetes manifests under `dev-ops/k8s/`, and Docker Compose stacks at `dev-ops/docker-compose*.yml`.
-
-⚠️ Several files currently checked into these paths still reference `postgres`, `JWT_SECRET`, a single `DATABASE_URL`, the old `@project-olympus-template` scope, and ports `3000`–`3002`. Those predate the MySQL + Azure MSAL architecture and are drift, not the target state — see `infrastructure.md` for the full explanation. Follow the rules below, not whatever a given file currently contains, and flag any file you touch that still has the old values.
+You are working on containerization config for this monorepo. Each Dockerfile lives at the root of its own app — `apps/backend/<service>/Dockerfile`, `apps/frontend/<app>/Dockerfile` — not centralized under `dev-ops/`. Kubernetes manifests live under `dev-ops/k8s/`, and Docker Compose stacks at `dev-ops/docker-compose*.yml`.
 
 ## Build context is always the monorepo root
 
-Every Dockerfile uses the repo root as its build context so it can reach `common/`, `turbo.json`/`pnpm-workspace.yaml`. `dockerfile:` points at `dev-ops/docker/<service>.Dockerfile`; `context:` is `.` from the repo root (or `..` from `dev-ops/`, matching whatever the compose file's own location implies).
+Every Dockerfile lives in its own app's root directory but uses the repo root as its build context so it can reach `common/`, `turbo.json`/`pnpm-workspace.yaml`. In each Compose service block, `dockerfile:` points at `apps/backend/<service>/Dockerfile` (or `apps/frontend/<app>/Dockerfile`); `context:` is the repo root (`.` or `../..`/`../../..` depending on the compose file's own location).
 
 ## Multi-stage pattern (required)
 
@@ -31,6 +30,7 @@ Every Dockerfile uses the repo root as its build context so it can reach `common
 | admin-api | 4001 |
 | customer-api | 4002 |
 | schedule-api | 4003 |
+| partner-api | 4004 |
 
 ## Environment variables each backend container needs
 

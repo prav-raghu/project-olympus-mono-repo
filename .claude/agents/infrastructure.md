@@ -7,17 +7,13 @@ model: inherit
 
 You manage all infrastructure-as-code, deployment configuration, and Azure provisioning for this monorepo.
 
-## ⚠️ Known drift — read before touching any file here
-
-The files currently under `dev-ops/docker/*.Dockerfile`, `dev-ops/docker-compose.yml`, and `dev-ops/k8s/*.yaml` predate the project's move to MySQL + Azure MSAL and still reference `postgres`, `JWT_SECRET`, a single `DATABASE_URL`, the `@project-olympus-template` scope, and ports `3000`–`3002`. `infrastructure/terraform/azure/main.tf` has the same stale port locals. None of that matches the authoritative contract below (MySQL, MSAL, multi-schema `DATABASE_URL_ADMIN`/`DATABASE_URL_CUSTOMER`/`DATABASE_URL_SCHEDULE`/`DATABASE_URL_SHARED`, ports `4000`–`4003`) that `.env.example`, `copilot-instructions.md`, and every backend agent in this folder agree on. Treat the rules below — not the current file contents — as correct, and flag any file you touch that still has the old values so it can be reconciled rather than silently propagating the drift.
-
 ## Infrastructure locations
 
 | Path | Purpose |
 |------|---------|
 | `infrastructure/terraform/azure/` | Terraform IaC — Azure resource provisioning (modules, environments) |
 | `infrastructure/nginx/` | NGINX reverse proxy configs (dev + prod) |
-| `dev-ops/docker/` | Per-service Dockerfiles |
+| `apps/backend/<service>/Dockerfile` | Per-service Dockerfile, lives at the root of its own app (not centralized under `dev-ops/`) |
 | `dev-ops/docker-compose.yml` | Production-shape Docker Compose (all services) |
 | `dev-ops/docker-compose.dev.yml` | Local dev stack (MySQL, Redis, MailHog, Directus) |
 | `dev-ops/docker-compose.nginx.yml` | Local NGINX Docker Compose overlay |
@@ -118,7 +114,7 @@ Never hardcode credentials, connection strings, or secrets in `.tf` files — us
 
 ## Docker
 
-Every Dockerfile is multi-stage: `base` (`node:22-alpine`, `corepack enable`) → `builder` (`pnpm install --frozen-lockfile`, `pnpm --filter @project-olympus/database prisma:generate`, `pnpm --filter "@project-olympus/{service}..." build`, `pnpm deploy --filter @project-olympus/{service} --prod /prod/{service}`) → `runner` (lean runtime, non-root user, `EXPOSE` matching the authoritative port table above, `CMD ["node", "dist/main.js"]`). Build context is always the monorepo root so the build can reach `common/`. Reconcile the `EXPOSE` value and the `@project-olympus` scope in each `dev-ops/docker/*.Dockerfile` against the port table — several currently still say `3000`–`3002` and the old template scope.
+Every Dockerfile lives at the root of its own app (`apps/backend/<service>/Dockerfile`, `apps/frontend/<app>/Dockerfile`) — not centralized under `dev-ops/docker/`. Every Dockerfile is multi-stage: `base` (`node:22-alpine`, `corepack enable`) → `builder` (`pnpm install --frozen-lockfile`, `pnpm --filter @project-olympus/database prisma:generate`, `pnpm --filter "@project-olympus/{service}..." build`, `pnpm deploy --filter @project-olympus/{service} --prod /prod/{service}`) → `runner` (lean runtime, non-root user, `EXPOSE` matching the authoritative port table above, `CMD ["node", "dist/main.js"]`). Build context is always the monorepo root so the build can reach `common/`; each Compose service's `dockerfile:` field points at `apps/backend/{service}/Dockerfile` relative to that root context.
 
 `dev-ops/docker-compose.yml` is the production-shape stack; `dev-ops/docker-compose.dev.yml` is local-dev only (MySQL, Redis, MailHog, Directus) and is never deployed. Every service's `environment:` block should set `DATABASE_URL_ADMIN`/`DATABASE_URL_CUSTOMER`/`DATABASE_URL_SCHEDULE`/`DATABASE_URL_SHARED` as applicable and the `AZURE_*` MSAL variables — not a single `DATABASE_URL` and not `JWT_SECRET`.
 
