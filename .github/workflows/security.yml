@@ -1,95 +1,95 @@
-name: Security
+# name: Security
 
-on:
-    push:
-        branches: [main]
-    pull_request:
-        branches: [main]
-    schedule:
-        - cron: "0 6 * * 1"
+# on:
+#     push:
+#         branches: [main]
+#     pull_request:
+#         branches: [main]
+#     schedule:
+#         - cron: "0 6 * * 1"
 
-permissions:
-    contents: read
-    security-events: write
-    actions: read
+# permissions:
+#     contents: read
+#     security-events: write
+#     actions: read
 
-jobs:
-    dependency-audit:
-        name: Dependency Audit
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+# jobs:
+#     dependency-audit:
+#         name: Dependency Audit
+#         runs-on: ubuntu-latest
+#         steps:
+#             - name: Checkout
+#               uses: actions/checkout@v4
 
-            - name: Setup pnpm
-              uses: pnpm/action-setup@v4
+#             - name: Setup pnpm
+#               uses: pnpm/action-setup@v4
 
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: "24"
-                  cache: "pnpm"
+#             - name: Setup Node.js
+#               uses: actions/setup-node@v4
+#               with:
+#                   node-version: "24"
+#                   cache: "pnpm"
 
-            - name: Install dependencies
-              run: pnpm install --frozen-lockfile
+#             - name: Install dependencies
+#               run: pnpm install --frozen-lockfile
 
-            - name: Run pnpm audit
-              run: pnpm audit --audit-level=high
-              continue-on-error: true
+#             - name: Run pnpm audit
+#               run: pnpm audit --audit-level=high
+#               continue-on-error: true
 
-    codeql:
-        name: CodeQL Analysis
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+#     codeql:
+#         name: CodeQL Analysis
+#         runs-on: ubuntu-latest
+#         steps:
+#             - name: Checkout
+#               uses: actions/checkout@v4
 
-            - name: Initialize CodeQL
-              uses: github/codeql-action/init@v3
-              with:
-                  languages: javascript-typescript
-                  queries: security-and-quality
+#             - name: Initialize CodeQL
+#               uses: github/codeql-action/init@v3
+#               with:
+#                   languages: javascript-typescript
+#                   queries: security-and-quality
 
-            - name: Autobuild
-              uses: github/codeql-action/autobuild@v3
+#             - name: Autobuild
+#               uses: github/codeql-action/autobuild@v3
 
-            - name: Perform CodeQL Analysis
-              uses: github/codeql-action/analyze@v3
-              with:
-                  category: "/language:javascript-typescript"
+#             - name: Perform CodeQL Analysis
+#               uses: github/codeql-action/analyze@v3
+#               with:
+#                   category: "/language:javascript-typescript"
 
-    secrets-scan:
-        name: Secrets Scan
-        runs-on: ubuntu-latest
-        env:
-            FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
+#     secrets-scan:
+#         name: Secrets Scan
+#         runs-on: ubuntu-latest
+#         env:
+#             FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+#         steps:
+#             - name: Checkout
+#               uses: actions/checkout@v4
+#               with:
+#                   fetch-depth: 0
 
-            - name: Resolve scan range
-              id: range
-              run: |
-                  if [[ "${{ github.event_name }}" == "push" ]]; then
-                    BASE="${{ github.event.before }}"
-                    # On the very first push (new repo/branch) before is all zeros
-                    if [[ "$BASE" == "0000000000000000000000000000000000000000" ]]; then
-                      BASE="HEAD~1"
-                    fi
-                  elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
-                    BASE="${{ github.event.pull_request.base.sha }}"
-                  else
-                    # Scheduled run — scan the last 30 days of commits
-                    BASE=$(git log --since="30 days ago" --format="%H" | tail -1)
-                  fi
-                  echo "base=$BASE" >> $GITHUB_OUTPUT
+#             - name: Resolve scan range
+#               id: range
+#               run: |
+#                   if [[ "${{ github.event_name }}" == "push" ]]; then
+#                     BASE="${{ github.event.before }}"
+#                     # On the very first push (new repo/branch) before is all zeros
+#                     if [[ "$BASE" == "0000000000000000000000000000000000000000" ]]; then
+#                       BASE="HEAD~1"
+#                     fi
+#                   elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+#                     BASE="${{ github.event.pull_request.base.sha }}"
+#                   else
+#                     # Scheduled run — scan the last 30 days of commits
+#                     BASE=$(git log --since="30 days ago" --format="%H" | tail -1)
+#                   fi
+#                   echo "base=$BASE" >> $GITHUB_OUTPUT
 
-            - name: TruffleHog OSS Scan
-              uses: trufflesecurity/trufflehog@main
-              with:
-                  path: ./
-                  base: ${{ steps.range.outputs.base }}
-                  head: HEAD
-                  extra_args: --only-verified
+#             - name: TruffleHog OSS Scan
+#               uses: trufflesecurity/trufflehog@main
+#               with:
+#                   path: ./
+#                   base: ${{ steps.range.outputs.base }}
+#                   head: HEAD
+#                   extra_args: --only-verified

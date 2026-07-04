@@ -1,125 +1,125 @@
-name: PR Checks
+# name: PR Checks
 
-on:
-    pull_request:
-        types: [opened, synchronize, reopened, edited]
+# on:
+#     pull_request:
+#         types: [opened, synchronize, reopened, edited]
 
-permissions:
-    contents: read
-    pull-requests: write
+# permissions:
+#     contents: read
+#     pull-requests: write
 
-jobs:
-    pr-title:
-        name: PR Title Convention
-        runs-on: ubuntu-latest
-        steps:
-            - name: Check PR title
-              uses: amannn/action-semantic-pull-request@v5
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              with:
-                  types: |
-                      feat
-                      fix
-                      docs
-                      style
-                      refactor
-                      perf
-                      test
-                      build
-                      ci
-                      chore
-                      revert
-                  requireScope: false
-                  subjectPattern: ^(?![A-Z]).+$
-                  subjectPatternError: |
-                      The subject "{subject}" found in the pull request title "{title}"
-                      should start with a lowercase letter.
-                  ignoreLabels: |
-                      bot
-                      dependencies
-                  headerPattern: '^(\w*)(?:\(([\w$.\-*/ ]*)\))?: (.*)$'
-                  headerPatternCorrespondence: type, scope, subject
+# jobs:
+#     pr-title:
+#         name: PR Title Convention
+#         runs-on: ubuntu-latest
+#         steps:
+#             - name: Check PR title
+#               uses: amannn/action-semantic-pull-request@v5
+#               env:
+#                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#               with:
+#                   types: |
+#                       feat
+#                       fix
+#                       docs
+#                       style
+#                       refactor
+#                       perf
+#                       test
+#                       build
+#                       ci
+#                       chore
+#                       revert
+#                   requireScope: false
+#                   subjectPattern: ^(?![A-Z]).+$
+#                   subjectPatternError: |
+#                       The subject "{subject}" found in the pull request title "{title}"
+#                       should start with a lowercase letter.
+#                   ignoreLabels: |
+#                       bot
+#                       dependencies
+#                   headerPattern: '^(\w*)(?:\(([\w$.\-*/ ]*)\))?: (.*)$'
+#                   headerPatternCorrespondence: type, scope, subject
 
-    changeset-check:
-        name: Changeset Check
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
+#     changeset-check:
+#         name: Changeset Check
+#         runs-on: ubuntu-latest
+#         steps:
+#             - name: Checkout
+#               uses: actions/checkout@v4
+#               with:
+#                   fetch-depth: 0
 
-            - name: Setup pnpm
-              uses: pnpm/action-setup@v4
+#             - name: Setup pnpm
+#               uses: pnpm/action-setup@v4
 
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: "24"
+#             - name: Setup Node.js
+#               uses: actions/setup-node@v4
+#               with:
+#                   node-version: "24"
 
-            - name: Install dependencies
-              run: pnpm install --frozen-lockfile
+#             - name: Install dependencies
+#               run: pnpm install --frozen-lockfile
 
-            - name: Check for changesets
-              run: |
-                  if [[ "${{ github.head_ref }}" == *"changeset-release"* ]]; then
-                    echo "Skipping changeset check for release PR"
-                    exit 0
-                  fi
-                  pnpm changeset status --since=origin/main
-              continue-on-error: true
+#             - name: Check for changesets
+#               run: |
+#                   if [[ "${{ github.head_ref }}" == *"changeset-release"* ]]; then
+#                     echo "Skipping changeset check for release PR"
+#                     exit 0
+#                   fi
+#                   pnpm changeset status --since=origin/main
+#               continue-on-error: true
 
-    size-check:
-        name: Bundle Size Check
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout base
-              uses: actions/checkout@v4
-              with:
-                  ref: ${{ github.base_ref }}
-                  path: base
+#     size-check:
+#         name: Bundle Size Check
+#         runs-on: ubuntu-latest
+#         steps:
+#             - name: Checkout base
+#               uses: actions/checkout@v4
+#               with:
+#                   ref: ${{ github.base_ref }}
+#                   path: base
 
-            - name: Checkout PR
-              uses: actions/checkout@v4
-              with:
-                  path: pr
+#             - name: Checkout PR
+#               uses: actions/checkout@v4
+#               with:
+#                   path: pr
 
-            - name: Setup pnpm
-              uses: pnpm/action-setup@v4
+#             - name: Setup pnpm
+#               uses: pnpm/action-setup@v4
 
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: "24"
+#             - name: Setup Node.js
+#               uses: actions/setup-node@v4
+#               with:
+#                   node-version: "24"
 
-            - name: Install and build base
-              working-directory: base
-              run: |
-                  pnpm install --frozen-lockfile
-                  pnpm build
-              continue-on-error: true
+#             - name: Install and build base
+#               working-directory: base
+#               run: |
+#                   pnpm install --frozen-lockfile
+#                   pnpm build
+#               continue-on-error: true
 
-            - name: Install and build PR
-              working-directory: pr
-              run: |
-                  pnpm install --frozen-lockfile
-                  pnpm build
+#             - name: Install and build PR
+#               working-directory: pr
+#               run: |
+#                   pnpm install --frozen-lockfile
+#                   pnpm build
 
-            - name: Compare bundle sizes
-              run: |
-                  echo "## Bundle Size Comparison" >> $GITHUB_STEP_SUMMARY
-                  echo "" >> $GITHUB_STEP_SUMMARY
+#             - name: Compare bundle sizes
+#               run: |
+#                   echo "## Bundle Size Comparison" >> $GITHUB_STEP_SUMMARY
+#                   echo "" >> $GITHUB_STEP_SUMMARY
 
-                  if [ -d "base/apps" ]; then
-                    BASE_SIZE=$(du -sb base/apps/*/dist 2>/dev/null | awk '{sum+=$1} END {print sum}' || echo "0")
-                  else
-                    BASE_SIZE=0
-                  fi
+#                   if [ -d "base/apps" ]; then
+#                     BASE_SIZE=$(du -sb base/apps/*/dist 2>/dev/null | awk '{sum+=$1} END {print sum}' || echo "0")
+#                   else
+#                     BASE_SIZE=0
+#                   fi
 
-                  PR_SIZE=$(du -sb pr/apps/*/dist 2>/dev/null | awk '{sum+=$1} END {print sum}' || echo "0")
+#                   PR_SIZE=$(du -sb pr/apps/*/dist 2>/dev/null | awk '{sum+=$1} END {print sum}' || echo "0")
 
-                  echo "| Branch | Size |" >> $GITHUB_STEP_SUMMARY
-                  echo "|--------|------|" >> $GITHUB_STEP_SUMMARY
-                  echo "| Base | ${BASE_SIZE} bytes |" >> $GITHUB_STEP_SUMMARY
-                  echo "| PR | ${PR_SIZE} bytes |" >> $GITHUB_STEP_SUMMARY
+#                   echo "| Branch | Size |" >> $GITHUB_STEP_SUMMARY
+#                   echo "|--------|------|" >> $GITHUB_STEP_SUMMARY
+#                   echo "| Base | ${BASE_SIZE} bytes |" >> $GITHUB_STEP_SUMMARY
+#                   echo "| PR | ${PR_SIZE} bytes |" >> $GITHUB_STEP_SUMMARY

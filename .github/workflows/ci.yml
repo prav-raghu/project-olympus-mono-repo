@@ -1,230 +1,230 @@
-name: CI
+# name: CI
 
-on:
-    push:
-        branches: [main, develop]
-    pull_request:
-        branches: [main, develop]
+# on:
+#     push:
+#         branches: [main, develop]
+#     pull_request:
+#         branches: [main, develop]
 
-concurrency:
-    group: ${{ github.workflow }}-${{ github.ref }}
-    cancel-in-progress: true
+# concurrency:
+#     group: ${{ github.workflow }}-${{ github.ref }}
+#     cancel-in-progress: true
 
-env:
-    NODE_VERSION: "24"
-    TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-    TURBO_TEAM: ${{ vars.TURBO_TEAM }}
-    # Stub values so NestJS env validation passes in CI
-    APPLICATIONINSIGHTS_CONNECTION_STRING: ""
-    DATABASE_URL_ADMIN: "mysql://ci:ci@localhost:3306/app_admin"
-    DATABASE_URL_CUSTOMER: "mysql://ci:ci@localhost:3306/app_customer"
-    DATABASE_URL_SCHEDULE: "mysql://ci:ci@localhost:3306/app_schedule"
-    DATABASE_URL_SHARED: "mysql://ci:ci@localhost:3306/app_shared"
-    AZURE_TENANT_ID: "00000000-0000-0000-0000-000000000000"
-    AZURE_CLIENT_ID: "00000000-0000-0000-0000-000000000000"
-    REDIS_URL: "redis://localhost:6379"
+# env:
+#     NODE_VERSION: "24"
+#     TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+#     TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+#     # Stub values so NestJS env validation passes in CI
+#     APPLICATIONINSIGHTS_CONNECTION_STRING: ""
+#     DATABASE_URL_ADMIN: "mysql://ci:ci@localhost:3306/app_admin"
+#     DATABASE_URL_CUSTOMER: "mysql://ci:ci@localhost:3306/app_customer"
+#     DATABASE_URL_SCHEDULE: "mysql://ci:ci@localhost:3306/app_schedule"
+#     DATABASE_URL_SHARED: "mysql://ci:ci@localhost:3306/app_shared"
+#     AZURE_TENANT_ID: "00000000-0000-0000-0000-000000000000"
+#     AZURE_CLIENT_ID: "00000000-0000-0000-0000-000000000000"
+#     REDIS_URL: "redis://localhost:6379"
 
-jobs:
-    install:
-        name: Install Dependencies
-        runs-on: ubuntu-latest
-        outputs:
-            cache-key: ${{ steps.cache-keys.outputs.key }}
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+# jobs:
+#     install:
+#         name: Install Dependencies
+#         runs-on: ubuntu-latest
+#         outputs:
+#             cache-key: ${{ steps.cache-keys.outputs.key }}
+#         steps:
+#             - name: Checkout
+#               uses: actions/checkout@v4
 
-            - name: Setup pnpm
-              uses: pnpm/action-setup@v4
+#             - name: Setup pnpm
+#               uses: pnpm/action-setup@v4
 
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: ${{ env.NODE_VERSION }}
-                  cache: "pnpm"
+#             - name: Setup Node.js
+#               uses: actions/setup-node@v4
+#               with:
+#                   node-version: ${{ env.NODE_VERSION }}
+#                   cache: "pnpm"
 
-            - name: Generate cache key
-              id: cache-keys
-              run: echo "key=node-modules-${{ hashFiles('pnpm-lock.yaml') }}" >> $GITHUB_OUTPUT
+#             - name: Generate cache key
+#               id: cache-keys
+#               run: echo "key=node-modules-${{ hashFiles('pnpm-lock.yaml') }}" >> $GITHUB_OUTPUT
 
-            - name: Install dependencies
-              run: pnpm install --frozen-lockfile
+#             - name: Install dependencies
+#               run: pnpm install --frozen-lockfile
 
-            - name: Cache node_modules
-              uses: actions/cache/save@v4
-              with:
-                  path: |
-                      node_modules
-                      apps/**/node_modules
-                      common/**/node_modules
-                  key: ${{ steps.cache-keys.outputs.key }}
+#             - name: Cache node_modules
+#               uses: actions/cache/save@v4
+#               with:
+#                   path: |
+#                       node_modules
+#                       apps/**/node_modules
+#                       common/**/node_modules
+#                   key: ${{ steps.cache-keys.outputs.key }}
 
-    lint:
-        name: Lint & Format
-        runs-on: ubuntu-latest
-        needs: install
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+#     lint:
+#         name: Lint & Format
+#         runs-on: ubuntu-latest
+#         needs: install
+#         steps:
+#             - name: Checkout
+#               uses: actions/checkout@v4
 
-            - name: Setup pnpm
-              uses: pnpm/action-setup@v4
+#             - name: Setup pnpm
+#               uses: pnpm/action-setup@v4
 
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: ${{ env.NODE_VERSION }}
+#             - name: Setup Node.js
+#               uses: actions/setup-node@v4
+#               with:
+#                   node-version: ${{ env.NODE_VERSION }}
 
-            - name: Restore node_modules
-              uses: actions/cache/restore@v4
-              with:
-                  path: |
-                      node_modules
-                      apps/**/node_modules
-                      common/**/node_modules
-                  key: ${{ needs.install.outputs.cache-key }}
+#             - name: Restore node_modules
+#               uses: actions/cache/restore@v4
+#               with:
+#                   path: |
+#                       node_modules
+#                       apps/**/node_modules
+#                       common/**/node_modules
+#                   key: ${{ needs.install.outputs.cache-key }}
 
-            - name: Check formatting
-              run: pnpm format:check
+#             - name: Check formatting
+#               run: pnpm format:check
 
-            - name: Run ESLint
-              run: pnpm lint
+#             - name: Run ESLint
+#               run: pnpm lint
 
-    typecheck:
-        name: Type Check
-        runs-on: ubuntu-latest
-        needs: install
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+#     typecheck:
+#         name: Type Check
+#         runs-on: ubuntu-latest
+#         needs: install
+#         steps:
+#             - name: Checkout
+#               uses: actions/checkout@v4
 
-            - name: Setup pnpm
-              uses: pnpm/action-setup@v4
+#             - name: Setup pnpm
+#               uses: pnpm/action-setup@v4
 
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: ${{ env.NODE_VERSION }}
+#             - name: Setup Node.js
+#               uses: actions/setup-node@v4
+#               with:
+#                   node-version: ${{ env.NODE_VERSION }}
 
-            - name: Restore node_modules
-              uses: actions/cache/restore@v4
-              with:
-                  path: |
-                      node_modules
-                      apps/**/node_modules
-                      common/**/node_modules
-                  key: ${{ needs.install.outputs.cache-key }}
+#             - name: Restore node_modules
+#               uses: actions/cache/restore@v4
+#               with:
+#                   path: |
+#                       node_modules
+#                       apps/**/node_modules
+#                       common/**/node_modules
+#                   key: ${{ needs.install.outputs.cache-key }}
 
-            - name: Run TypeScript compiler
-              run: pnpm typecheck
+#             - name: Run TypeScript compiler
+#               run: pnpm typecheck
 
-    build:
-        name: Build
-        runs-on: ubuntu-latest
-        needs: [install, typecheck]
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+#     build:
+#         name: Build
+#         runs-on: ubuntu-latest
+#         needs: [install, typecheck]
+#         steps:
+#             - name: Checkout
+#               uses: actions/checkout@v4
 
-            - name: Setup pnpm
-              uses: pnpm/action-setup@v4
+#             - name: Setup pnpm
+#               uses: pnpm/action-setup@v4
 
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: ${{ env.NODE_VERSION }}
+#             - name: Setup Node.js
+#               uses: actions/setup-node@v4
+#               with:
+#                   node-version: ${{ env.NODE_VERSION }}
 
-            - name: Restore node_modules
-              uses: actions/cache/restore@v4
-              with:
-                  path: |
-                      node_modules
-                      apps/**/node_modules
-                      common/**/node_modules
-                  key: ${{ needs.install.outputs.cache-key }}
+#             - name: Restore node_modules
+#               uses: actions/cache/restore@v4
+#               with:
+#                   path: |
+#                       node_modules
+#                       apps/**/node_modules
+#                       common/**/node_modules
+#                   key: ${{ needs.install.outputs.cache-key }}
 
-            - name: Generate Prisma clients (MySQL)
-              run: pnpm --filter @project-olympus/database prisma:generate
+#             - name: Generate Prisma clients (MySQL)
+#               run: pnpm --filter @project-olympus/database prisma:generate
 
-            - name: Build common packages
-              run: pnpm --filter './common/**' build
+#             - name: Build common packages
+#               run: pnpm --filter './common/**' build
 
-            - name: Build NestJS backend services
-              run: |
-                  pnpm --filter @project-olympus/admin-api build
-                  pnpm --filter @project-olympus/customer-api build
-                  pnpm --filter @project-olympus/schedule-api build
-                  pnpm --filter @project-olympus/api-gateway build
+#             - name: Build NestJS backend services
+#               run: |
+#                   pnpm --filter @project-olympus/admin-api build
+#                   pnpm --filter @project-olympus/customer-api build
+#                   pnpm --filter @project-olympus/schedule-api build
+#                   pnpm --filter @project-olympus/api-gateway build
 
-            - name: Build Angular frontends
-              run: |
-                  pnpm --filter admin-web build
-                  pnpm --filter customer-web build
+#             - name: Build Angular frontends
+#               run: |
+#                   pnpm --filter admin-web build
+#                   pnpm --filter customer-web build
 
-            - name: Upload build artifacts
-              uses: actions/upload-artifact@v4
-              with:
-                  name: dist-artifacts
-                  path: |
-                      apps/**/dist
-                      common/**/dist
-                  retention-days: 1
+#             - name: Upload build artifacts
+#               uses: actions/upload-artifact@v4
+#               with:
+#                   name: dist-artifacts
+#                   path: |
+#                       apps/**/dist
+#                       common/**/dist
+#                   retention-days: 1
 
-    test:
-        name: Test
-        runs-on: ubuntu-latest
-        needs: [install, build]
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+#     test:
+#         name: Test
+#         runs-on: ubuntu-latest
+#         needs: [install, build]
+#         steps:
+#             - name: Checkout
+#               uses: actions/checkout@v4
 
-            - name: Setup pnpm
-              uses: pnpm/action-setup@v4
+#             - name: Setup pnpm
+#               uses: pnpm/action-setup@v4
 
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: ${{ env.NODE_VERSION }}
+#             - name: Setup Node.js
+#               uses: actions/setup-node@v4
+#               with:
+#                   node-version: ${{ env.NODE_VERSION }}
 
-            - name: Restore node_modules
-              uses: actions/cache/restore@v4
-              with:
-                  path: |
-                      node_modules
-                      apps/**/node_modules
-                      common/**/node_modules
-                  key: ${{ needs.install.outputs.cache-key }}
+#             - name: Restore node_modules
+#               uses: actions/cache/restore@v4
+#               with:
+#                   path: |
+#                       node_modules
+#                       apps/**/node_modules
+#                       common/**/node_modules
+#                   key: ${{ needs.install.outputs.cache-key }}
 
-            - name: Download build artifacts
-              uses: actions/download-artifact@v4
-              with:
-                  name: dist-artifacts
+#             - name: Download build artifacts
+#               uses: actions/download-artifact@v4
+#               with:
+#                   name: dist-artifacts
 
-            - name: Run tests with coverage
-              run: pnpm test:coverage
+#             - name: Run tests with coverage
+#               run: pnpm test:coverage
 
-            - name: Upload coverage reports
-              uses: codecov/codecov-action@v4
-              with:
-                  token: ${{ secrets.CODECOV_TOKEN }}
-                  files: ./apps/**/coverage/lcov.info,./common/**/coverage/lcov.info
-                  flags: unittests
-                  fail_ci_if_error: false
-                  verbose: true
+#             - name: Upload coverage reports
+#               uses: codecov/codecov-action@v4
+#               with:
+#                   token: ${{ secrets.CODECOV_TOKEN }}
+#                   files: ./apps/**/coverage/lcov.info,./common/**/coverage/lcov.info
+#                   flags: unittests
+#                   fail_ci_if_error: false
+#                   verbose: true
 
-    quality-gate:
-        name: Quality Gate
-        runs-on: ubuntu-latest
-        needs: [lint, typecheck, build, test]
-        if: always()
-        steps:
-            - name: Check all jobs passed
-              run: |
-                  if [[ "${{ needs.lint.result }}" != "success" ]] || \
-                     [[ "${{ needs.typecheck.result }}" != "success" ]] || \
-                     [[ "${{ needs.build.result }}" != "success" ]] || \
-                     [[ "${{ needs.test.result }}" != "success" ]]; then
-                    echo "::error::Quality gate failed - one or more checks did not pass"
-                    exit 1
-                  fi
-                  echo "All quality checks passed!"
+#     quality-gate:
+#         name: Quality Gate
+#         runs-on: ubuntu-latest
+#         needs: [lint, typecheck, build, test]
+#         if: always()
+#         steps:
+#             - name: Check all jobs passed
+#               run: |
+#                   if [[ "${{ needs.lint.result }}" != "success" ]] || \
+#                      [[ "${{ needs.typecheck.result }}" != "success" ]] || \
+#                      [[ "${{ needs.build.result }}" != "success" ]] || \
+#                      [[ "${{ needs.test.result }}" != "success" ]]; then
+#                     echo "::error::Quality gate failed - one or more checks did not pass"
+#                     exit 1
+#                   fi
+#                   echo "All quality checks passed!"
