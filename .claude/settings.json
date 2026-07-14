@@ -1,60 +1,62 @@
 {
-  "permissions": {
-    "allow": [
-      "Bash(pnpm install*)",
-      "Bash(pnpm add *)",
-      "Bash(pnpm remove *)",
-      "Bash(pnpm list*)",
-      "Bash(pnpm --filter @project-olympus/* build)",
-      "Bash(pnpm --filter @project-olympus/* dev)",
-      "Bash(pnpm --filter @project-olympus/* test*)",
-      "Bash(pnpm --filter @project-olympus/* typecheck)",
-      "Bash(pnpm --filter @project-olympus/* tsc --noEmit)",
-      "Bash(pnpm --filter @project-olympus/* prisma:generate)",
-      "Bash(pnpm --filter @project-olympus/* prisma:validate)",
-      "Bash(pnpm --filter admin-web build)",
-      "Bash(pnpm --filter admin-web dev)",
-      "Bash(pnpm --filter admin-web typecheck)",
-      "Bash(pnpm --filter customer-web build)",
-      "Bash(pnpm --filter customer-web dev)",
-      "Bash(pnpm --filter customer-web typecheck)",
-      "Bash(pnpm --filter customer-mobile build)",
-      "Bash(pnpm --filter customer-mobile dev)",
-      "Bash(pnpm build)",
-      "Bash(pnpm test*)",
-      "Bash(pnpm lint*)",
-      "Bash(pnpm typecheck)",
-      "Bash(pnpm format:check)",
-      "Bash(grep *)",
-      "Bash(find *)",
-      "Bash(git status)",
-      "Bash(git diff*)",
-      "Bash(git log*)"
-    ],
-    "deny": [
-      "Bash(git merge*)",
-      "Bash(git rebase*)",
-      "Bash(*prisma migrate*)",
-      "Bash(*prisma db push*)",
-      "Bash(*prisma db reset*)",
-      "Bash(rm -rf*)"
-    ]
-  },
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash .claude/hooks/typecheck-changed.sh"
-          },
-          {
-            "type": "command",
-            "command": "bash .claude/hooks/validate-no-any.sh"
-          }
+    "permissions": {
+        "allow": [
+            "Bash(pnpm install*)",
+            "Bash(pnpm add *)",
+            "Bash(pnpm remove *)",
+            "Bash(pnpm list*)",
+            "Bash(pnpm --filter @project-olympus/* build)",
+            "Bash(pnpm --filter @project-olympus/* dev)",
+            "Bash(pnpm --filter @project-olympus/* test*)",
+            "Bash(pnpm --filter @project-olympus/* typecheck)",
+            "Bash(pnpm --filter @project-olympus/* tsc --noEmit)",
+            "Bash(pnpm --filter @project-olympus/* prisma:generate)",
+            "Bash(pnpm --filter @project-olympus/* prisma:validate)",
+            "Bash(pnpm --filter admin-web build)",
+            "Bash(pnpm --filter admin-web dev)",
+            "Bash(pnpm --filter admin-web typecheck)",
+            "Bash(pnpm --filter customer-web build)",
+            "Bash(pnpm --filter customer-web dev)",
+            "Bash(pnpm --filter customer-web typecheck)",
+            "Bash(pnpm --filter customer-mobile build)",
+            "Bash(pnpm --filter customer-mobile dev)",
+            "Bash(pnpm build)",
+            "Bash(pnpm test*)",
+            "Bash(pnpm lint*)",
+            "Bash(pnpm typecheck)",
+            "Bash(pnpm format:check)",
+            "Bash(grep *)",
+            "Bash(find *)",
+            "Bash(git status)",
+            "Bash(git diff*)",
+            "Bash(git log*)",
+            "Bash(git push*)",
+            "Bash(git commit*)"
+        ],
+        "deny": [
+            "Bash(git merge*)",
+            "Bash(git rebase*)",
+            "Bash(*prisma migrate*)",
+            "Bash(*prisma db push*)",
+            "Bash(*prisma db reset*)",
+            "Bash(rm -rf*)"
         ]
-      }
-    ]
-  }
+    },
+    "hooks": {
+        "PostToolUse": [
+            {
+                "matcher": "Edit|Write",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "bash .claude/hooks/typecheck-changed.sh"
+                    },
+                    {
+                        "type": "command",
+                        "command": "bash .claude/hooks/validate-no-any.sh"
+                    }
+                ]
+            }
+        ]
+    }
 }
