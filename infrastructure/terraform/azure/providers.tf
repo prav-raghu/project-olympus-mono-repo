@@ -9,8 +9,8 @@ terraform {
   }
 
   backend "azurerm" {
-    resource_group_name  = "khula-metrics-tfstate-rg"
-    storage_account_name = "khulatfstate"
+    resource_group_name  = "project-olympus-tfstate-rg"
+    storage_account_name = "projectolympustfstate"
     container_name       = "tfstate"
     key                  = "azure.tfstate"
   }

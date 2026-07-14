@@ -1,18 +1,29 @@
 location     = "southafricanorth"
 environment  = "dev"
-project_name = "project-olympus-template"
+project_name = "project-olympus"
 
-customer_api_image = "yourregistrydev.azurecr.io/customer-api:latest"
-admin_api_image    = "yourregistrydev.azurecr.io/admin-api:latest"
-customer_web_image = "yourregistrydev.azurecr.io/customer-web:latest"
+customer_api_image = "projectolympusdev.azurecr.io/customer-api:latest"
+admin_api_image    = "projectolympusdev.azurecr.io/admin-api:latest"
+api_gateway_image  = "projectolympusdev.azurecr.io/api-gateway:latest"
+schedule_api_image = "projectolympusdev.azurecr.io/schedule-api:latest"
+partner_api_image  = "projectolympusdev.azurecr.io/partner-api:latest"
 
-database_url              = "postgresql://user:password@host:5432/dbname?pgbouncer=true"
-mailtrap_api_key          = "your-mailtrap-api-key"
-mailtrap_from             = "noreply@yourdomain.com"
-mailtrap_from_name        = "Your App Name"
-stripe_secret_key         = "sk_live_xxxxxxxxxxxxxxxxxxxx"
-stripe_webhook_secret     = "whsec_xxxxxxxxxxxxxxxxxxxx"
-stripe_publishable_key    = "pk_live_xxxxxxxxxxxxxxxxxxxx"
+database_url_admin    = "mysql://appuser:password@host:3306/app_admin"
+database_url_customer = "mysql://appuser:password@host:3306/app_customer"
+database_url_schedule = "mysql://appuser:password@host:3306/app_schedule"
+database_url_shared   = "mysql://appuser:password@host:3306/app_shared"
+
+azure_tenant_id     = "your-azure-ad-tenant-id"
+azure_client_id     = "your-azure-ad-client-id"
+azure_client_secret = "your-azure-ad-client-secret"
+azure_api_audience  = "api://your-app-id-uri"
+azure_authority     = "https://login.microsoftonline.com/your-azure-ad-tenant-id"
+
+mailgun_api_key = "your-mailgun-api-key"
+mailgun_domain  = "mg.yourdomain.com"
+mailgun_host    = "api.mailgun.net"
+mailgun_from    = "noreply@yourdomain.com"
+
 two_factor_encryption_key = "64-hex-character-random-string"
 winsms_api_key            = "your-winsms-api-key"
 
@@ -22,13 +33,20 @@ customer_api_max_replicas = 10
 admin_api_min_replicas = 0
 admin_api_max_replicas = 5
 
-customer_web_min_replicas = 0
-customer_web_max_replicas = 10
+api_gateway_min_replicas = 0
+api_gateway_max_replicas = 10
+
+schedule_api_min_replicas = 0
+schedule_api_max_replicas = 5
+
+partner_api_min_replicas = 0
+partner_api_max_replicas = 5
 
 redis_capacity = 1
 redis_family   = "C"
 redis_sku      = "Standard"
 
-customer_web_url = "https://app.yourdomain.com"
-admin_web_url    = "https://admin.yourdomain.com"
-admin_web_domain = "admin.yourdomain.com"
+customer_web_url    = "https://app.yourdomain.com"
+admin_web_url       = "https://admin.yourdomain.com"
+admin_web_domain    = "admin.yourdomain.com"
+customer_web_domain = "app.yourdomain.com"

@@ -1,34 +1,35 @@
 {
-  "name": "@project-olympus/storage",
-  "version": "1.0.0",
-  "description": "File upload and storage service with S3 and Azure Blob support",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "clean": "rm -rf dist",
-    "update-deps": "pnpm update --latest"
-  },
-  "keywords": [
-    "storage",
-    "s3",
-    "azure-blob",
-    "file-upload"
-  ],
-  "author": "Pravir Raghu",
-  "license": "MIT",
-  "dependencies": {
-    "@aws-sdk/client-s3": "^3.1042.0",
-    "@aws-sdk/s3-request-presigner": "^3.1042.0",
-    "@azure/storage-blob": "^12.31.0",
-    "@project-olympus/types": "workspace:*",
-    "mime-types": "^3.0.2",
-    "sharp": "^0.34.5"
-  },
-  "devDependencies": {
-    "@types/mime-types": "^3.0.1",
-    "@types/node": "^25.6.0",
-    "typescript": "^5.9.3"
-  }
+    "name": "@project-olympus/storage",
+    "version": "1.0.0",
+    "description": "File upload and storage service with S3 and Azure Blob support",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsc",
+        "typecheck": "tsc --noEmit -p tsconfig.json",
+        "dev": "tsc --watch",
+        "clean": "rm -rf dist",
+        "update-deps": "pnpm update --latest"
+    },
+    "keywords": [
+        "storage",
+        "s3",
+        "azure-blob",
+        "file-upload"
+    ],
+    "author": "Pravir Raghu",
+    "license": "MIT",
+    "dependencies": {
+        "@aws-sdk/client-s3": "^3.1042.0",
+        "@aws-sdk/s3-request-presigner": "^3.1042.0",
+        "@azure/storage-blob": "^12.31.0",
+        "@project-olympus/types": "workspace:*",
+        "mime-types": "^3.0.2",
+        "sharp": "^0.34.5"
+    },
+    "devDependencies": {
+        "@types/mime-types": "^3.0.1",
+        "@types/node": "^25.6.0",
+        "typescript": "^5.9.3"
+    }
 }

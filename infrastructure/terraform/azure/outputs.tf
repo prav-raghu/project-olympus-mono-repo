@@ -18,9 +18,9 @@ output "schedule_api_url" {
   value       = module.schedule_api.service_url
 }
 
-output "customer_web_url" {
-  description = "Container App URL for customer-web (Angular)"
-  value       = module.customer_web.service_url
+output "partner_api_url" {
+  description = "Container App URL for partner-api"
+  value       = module.partner_api.service_url
 }
 
 output "admin_web_cdn_hostname" {
@@ -38,8 +38,23 @@ output "admin_web_cdn_endpoint_id" {
   value       = module.admin_web.cdn_endpoint_id
 }
 
+output "customer_web_cdn_hostname" {
+  description = "Azure CDN endpoint hostname for customer-web — create DNS CNAME pointing here"
+  value       = module.customer_web.cdn_endpoint_hostname
+}
+
+output "customer_web_storage_account" {
+  description = "Storage account for customer-web — upload dist/ contents to $${web} container"
+  value       = module.customer_web.storage_account_name
+}
+
+output "customer_web_cdn_endpoint_id" {
+  description = "CDN endpoint resource ID — use for cache purge after deploy"
+  value       = module.customer_web.cdn_endpoint_id
+}
+
 output "acr_login_server" {
-  description = "ACR login server (e.g. khuladev.azurecr.io)"
+  description = "ACR login server (e.g. projectolympusdev.azurecr.io)"
   value       = module.acr.login_server
 }
 

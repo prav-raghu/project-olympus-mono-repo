@@ -1,16 +1,17 @@
 {
-  "name": "@project-olympus/types",
-  "version": "1.0.0",
-  "description": "Shared types and DTOs",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "update-deps": "pnpm update --latest"
-  },
-  "dependencies": {},
-  "devDependencies": {
-    "typescript": "^5.9.3"
-  },
-  "author": "Pravir Raghu"
+    "name": "@project-olympus/types",
+    "version": "1.0.0",
+    "description": "Shared types and DTOs",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsc -p tsconfig.json",
+        "typecheck": "tsc --noEmit -p tsconfig.json",
+        "update-deps": "pnpm update --latest"
+    },
+    "dependencies": {},
+    "devDependencies": {
+        "typescript": "^5.9.3"
+    },
+    "author": "Pravir Raghu"
 }

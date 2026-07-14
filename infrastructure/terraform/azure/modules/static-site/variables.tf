@@ -18,6 +18,11 @@ variable "resource_group_name" {
   type        = string
 }
 
+variable "app_name" {
+  description = "Short app identifier used in resource names (e.g. admin-web, customer-web)"
+  type        = string
+}
+
 variable "domain" {
   description = "Custom domain for the CDN endpoint — leave empty to skip"
   type        = string

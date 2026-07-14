@@ -1,27 +1,28 @@
 {
-  "name": "@project-olympus/email",
-  "version": "1.0.0",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
-  "scripts": {
-    "build": "tsc -p tsconfig.json && copyfiles -u 2 \"src/templates/**/*\" dist/templates",
-    "update-deps": "pnpm update --latest"
-  },
-  "dependencies": {
-    "@project-olympus/logging": "workspace:*",
-    "form-data": "^4.0.1",
-    "mailgun.js": "^10.0.0",
-    "nodemailer": "^6.9.0"
-  },
-  "devDependencies": {
-    "@types/node": "^25.6.0",
-    "@types/nodemailer": "^6.4.17",
-    "copyfiles": "^2.4.1",
-    "ts-node": "^10.9.2",
-    "typescript": "^6.0.3"
-  },
-  "author": "Pravir Raghu"
+    "name": "@project-olympus/email",
+    "version": "1.0.0",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsc -p tsconfig.json && copyfiles -u 2 \"src/templates/**/*\" dist/templates",
+        "typecheck": "tsc --noEmit -p tsconfig.json",
+        "update-deps": "pnpm update --latest"
+    },
+    "dependencies": {
+        "@project-olympus/logging": "workspace:*",
+        "form-data": "^4.0.1",
+        "mailgun.js": "^10.0.0",
+        "nodemailer": "^6.9.0"
+    },
+    "devDependencies": {
+        "@types/node": "^25.6.0",
+        "@types/nodemailer": "^6.4.17",
+        "copyfiles": "^2.4.1",
+        "ts-node": "^10.9.2",
+        "typescript": "^6.0.3"
+    },
+    "author": "Pravir Raghu"
 }

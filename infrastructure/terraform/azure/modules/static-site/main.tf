@@ -1,5 +1,21 @@
+terraform {
+  required_providers {
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.6"
+    }
+  }
+}
+
+resource "random_string" "storage_suffix" {
+  length  = 6
+  special = false
+  upper   = false
+}
+
 locals {
-  storage_name = replace("${var.project_name}${var.environment}adminweb", "-", "")
+  storage_name_base = substr(lower(replace("${var.project_name}${var.environment}${var.app_name}", "-", "")), 0, 18)
+  storage_name       = "${local.storage_name_base}${random_string.storage_suffix.result}"
 }
 
 resource "azurerm_storage_account" "spa" {
@@ -33,7 +49,7 @@ resource "azurerm_storage_account" "spa" {
 }
 
 resource "azurerm_cdn_profile" "spa" {
-  name                = "${var.project_name}-${var.environment}-cdn"
+  name                = "${var.project_name}-${var.environment}-${var.app_name}-cdn"
   location            = "global"
   resource_group_name = var.resource_group_name
   sku                 = "Standard_Microsoft"
@@ -46,7 +62,7 @@ resource "azurerm_cdn_profile" "spa" {
 }
 
 resource "azurerm_cdn_endpoint" "spa" {
-  name                          = "${var.project_name}-${var.environment}-admin-web"
+  name                          = "${var.project_name}-${var.environment}-${var.app_name}"
   profile_name                  = azurerm_cdn_profile.spa.name
   location                      = "global"
   resource_group_name           = var.resource_group_name

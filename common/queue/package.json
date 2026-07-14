@@ -1,28 +1,29 @@
 {
-  "name": "@project-olympus/queue",
-  "version": "1.0.0",
-  "description": "Message queue service using BullMQ for background job processing",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "update-deps": "pnpm update --latest"
-  },
-  "dependencies": {
-    "@project-olympus/logging": "workspace:*",
-    "bullmq": "^5.76.5",
-    "ioredis": "^5.10.1"
-  },
-  "devDependencies": {
-    "@types/node": "^25.6.0",
-    "typescript": "^5.9.3"
-  },
-  "keywords": [
-    "queue",
-    "bullmq",
-    "background-jobs",
-    "redis"
-  ],
-  "author": "Pravir Raghu",
-  "license": "MIT"
+    "name": "@project-olympus/queue",
+    "version": "1.0.0",
+    "description": "Message queue service using BullMQ for background job processing",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsc -p tsconfig.json",
+        "typecheck": "tsc --noEmit -p tsconfig.json",
+        "update-deps": "pnpm update --latest"
+    },
+    "dependencies": {
+        "@project-olympus/logging": "workspace:*",
+        "bullmq": "^5.76.5",
+        "ioredis": "^5.10.1"
+    },
+    "devDependencies": {
+        "@types/node": "^25.6.0",
+        "typescript": "^5.9.3"
+    },
+    "keywords": [
+        "queue",
+        "bullmq",
+        "background-jobs",
+        "redis"
+    ],
+    "author": "Pravir Raghu",
+    "license": "MIT"
 }

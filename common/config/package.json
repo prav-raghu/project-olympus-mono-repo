@@ -1,34 +1,35 @@
 {
-  "name": "@project-olympus/config",
-  "version": "1.0.0",
-  "description": "Common configuration utilities with class-validator env validation",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "keywords": [
-    "configuration",
-    "project-olympus",
-    "common"
-  ],
-  "scripts": {
-    "build": "tsc",
-    "test": "jest",
-    "update-deps": "pnpm update --latest"
-  },
-  "dependencies": {
-    "class-transformer": "^0.5.1",
-    "class-validator": "^0.14.0",
-    "dotenv": "^17.4.2",
-    "reflect-metadata": "^0.2.2"
-  },
-  "devDependencies": {
-    "@types/jest": "^30.0.0",
-    "@typescript-eslint/eslint-plugin": "^8.59.2",
-    "@typescript-eslint/parser": "^8.59.2",
-    "eslint": "^10.3.0",
-    "jest": "^30.3.0",
-    "ts-jest": "^29.4.9",
-    "typescript": "^5.9.3"
-  },
-  "author": "Pravir Raghu",
-  "license": "MIT"
+    "name": "@project-olympus/config",
+    "version": "1.0.0",
+    "description": "Common configuration utilities with class-validator env validation",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "keywords": [
+        "configuration",
+        "project-olympus",
+        "common"
+    ],
+    "scripts": {
+        "build": "tsc",
+        "typecheck": "tsc --noEmit -p tsconfig.json",
+        "test": "jest",
+        "update-deps": "pnpm update --latest"
+    },
+    "dependencies": {
+        "class-transformer": "^0.5.1",
+        "class-validator": "^0.14.0",
+        "dotenv": "^17.4.2",
+        "reflect-metadata": "^0.2.2"
+    },
+    "devDependencies": {
+        "@types/jest": "^30.0.0",
+        "@typescript-eslint/eslint-plugin": "^8.59.2",
+        "@typescript-eslint/parser": "^8.59.2",
+        "eslint": "^10.3.0",
+        "jest": "^30.3.0",
+        "ts-jest": "^29.4.9",
+        "typescript": "^5.9.3"
+    },
+    "author": "Pravir Raghu",
+    "license": "MIT"
 }

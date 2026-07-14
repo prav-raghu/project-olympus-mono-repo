@@ -29,10 +29,10 @@ resource "azurerm_role_assignment" "kv_admin" {
 }
 
 resource "azurerm_key_vault_secret" "secrets" {
-  for_each = var.secrets
+  for_each = nonsensitive(toset(keys(var.secrets)))
 
   name         = lower(replace(each.key, "_", "-"))
-  value        = each.value
+  value        = var.secrets[each.key]
   key_vault_id = azurerm_key_vault.main.id
 
   depends_on = [azurerm_role_assignment.kv_admin]

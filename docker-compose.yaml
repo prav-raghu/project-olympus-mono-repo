@@ -165,6 +165,11 @@ services:
     admin-web:
         image: ghcr.io/prav-raghu/admin-web:main
         pull_policy: always
+        environment:
+            - API_BASE_URL=${ADMIN_WEB_API_BASE_URL:-/api/v1}
+            - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+            - AZURE_AUTHORITY=${AZURE_AUTHORITY}
+            - AZURE_REDIRECT_URI=${ADMIN_WEB_URL}
         depends_on:
             api-gateway:
                 condition: service_healthy
@@ -181,6 +186,11 @@ services:
     customer-web:
         image: ghcr.io/prav-raghu/customer-web:main
         pull_policy: always
+        environment:
+            - API_BASE_URL=${CUSTOMER_WEB_API_BASE_URL:-/api/v1}
+            - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+            - AZURE_AUTHORITY=${AZURE_AUTHORITY}
+            - AZURE_REDIRECT_URI=${CUSTOMER_WEB_URL}
         depends_on:
             api-gateway:
                 condition: service_healthy

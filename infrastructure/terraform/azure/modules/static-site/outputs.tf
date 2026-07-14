@@ -10,7 +10,7 @@ output "primary_web_host" {
 
 output "cdn_endpoint_hostname" {
   description = "CDN endpoint hostname — create DNS CNAME pointing here"
-  value       = azurerm_cdn_endpoint.spa.host_name
+  value       = azurerm_cdn_endpoint.spa.fqdn
 }
 
 output "cdn_endpoint_id" {

@@ -22,7 +22,7 @@ variable "environment" {
 variable "project_name" {
   description = "Base project name used in all resource names"
   type        = string
-  default     = "project-olympus-template"
+  default     = "project-olympus"
 }
 
 variable "customer_api_image" {
@@ -45,8 +45,8 @@ variable "schedule_api_image" {
   type        = string
 }
 
-variable "customer_web_image" {
-  description = "Full ACR image URI for customer-web (Angular)"
+variable "partner_api_image" {
+  description = "Full ACR image URI for partner-api"
   type        = string
 }
 
@@ -104,37 +104,25 @@ variable "azure_authority" {
   sensitive   = true
 }
 
-variable "mailtrap_api_key" {
-  description = "Mailtrap transactional email API key"
+variable "mailgun_api_key" {
+  description = "Mailgun transactional email API key — see common/email's MAILGUN_API_KEY contract"
   type        = string
   sensitive   = true
 }
 
-variable "mailtrap_from" {
-  description = "Sender email address for transactional emails"
+variable "mailgun_domain" {
+  description = "Mailgun sending domain — common/email's MAILGUN_DOMAIN"
   type        = string
 }
 
-variable "mailtrap_from_name" {
-  description = "Sender display name for transactional emails"
+variable "mailgun_host" {
+  description = "Mailgun API host — common/email's MAILGUN_HOST"
   type        = string
-  default     = ""
+  default     = "api.mailgun.net"
 }
 
-variable "stripe_secret_key" {
-  description = "Stripe secret key"
-  type        = string
-  sensitive   = true
-}
-
-variable "stripe_webhook_secret" {
-  description = "Stripe webhook signing secret"
-  type        = string
-  sensitive   = true
-}
-
-variable "stripe_publishable_key" {
-  description = "Stripe publishable key (non-sensitive, injected as plain env var)"
+variable "mailgun_from" {
+  description = "Sender email address for transactional emails — common/email's MAILGUN_FROM"
   type        = string
 }
 
@@ -198,16 +186,16 @@ variable "schedule_api_max_replicas" {
   default     = 5
 }
 
-variable "customer_web_min_replicas" {
-  description = "Minimum replicas for customer-web"
+variable "partner_api_min_replicas" {
+  description = "Minimum replicas for partner-api (0 = scale-to-zero)"
   type        = number
   default     = 0
 }
 
-variable "customer_web_max_replicas" {
-  description = "Maximum replicas for customer-web"
+variable "partner_api_max_replicas" {
+  description = "Maximum replicas for partner-api"
   type        = number
-  default     = 10
+  default     = 5
 }
 
 variable "redis_capacity" {
@@ -252,6 +240,12 @@ variable "admin_web_url" {
 
 variable "admin_web_domain" {
   description = "Custom domain for admin-web CDN endpoint (leave empty to skip)"
+  type        = string
+  default     = ""
+}
+
+variable "customer_web_domain" {
+  description = "Custom domain for customer-web CDN endpoint (leave empty to skip)"
   type        = string
   default     = ""
 }

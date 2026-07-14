@@ -1,22 +1,23 @@
 {
-  "name": "@project-olympus/export",
-  "version": "1.0.0",
-  "description": "CSV and Excel export utilities with streaming support",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "clean": "rm -rf dist",
-    "update-deps": "pnpm update --latest"
-  },
-  "dependencies": {
-    "csv-stringify": "^6.7.0",
-    "exceljs": "^4.4.0"
-  },
-  "devDependencies": {
-    "@types/node": "^25.6.0",
-    "typescript": "^5.9.3"
-  },
-  "author": "Pravir Raghu"
+    "name": "@project-olympus/export",
+    "version": "1.0.0",
+    "description": "CSV and Excel export utilities with streaming support",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsc",
+        "typecheck": "tsc --noEmit -p tsconfig.json",
+        "dev": "tsc --watch",
+        "clean": "rm -rf dist",
+        "update-deps": "pnpm update --latest"
+    },
+    "dependencies": {
+        "csv-stringify": "^6.7.0",
+        "exceljs": "^4.4.0"
+    },
+    "devDependencies": {
+        "@types/node": "^25.6.0",
+        "typescript": "^5.9.3"
+    },
+    "author": "Pravir Raghu"
 }

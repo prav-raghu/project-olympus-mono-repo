@@ -15,7 +15,9 @@ RUN pnpm --filter "customer-web..." build
 FROM nginx:alpine AS runner
 COPY --from=builder /app/apps/frontend/customer-web/dist/customer-web/browser /usr/share/nginx/html
 COPY apps/frontend/customer-web/nginx.conf /etc/nginx/conf.d/default.conf
+COPY apps/frontend/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 EXPOSE 80
 HEALTHCHECK --interval=15s --timeout=5s --retries=3 \
   CMD wget -qO- http://127.0.0.1/ || exit 1
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["/docker-entrypoint.sh"]

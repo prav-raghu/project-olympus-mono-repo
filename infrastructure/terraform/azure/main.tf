@@ -63,9 +63,7 @@ module "key_vault" {
     AZURE_CLIENT_SECRET       = var.azure_client_secret
     AZURE_API_AUDIENCE        = var.azure_api_audience
     AZURE_AUTHORITY           = var.azure_authority
-    MAILTRAP_API_KEY          = var.mailtrap_api_key
-    STRIPE_SECRET_KEY         = var.stripe_secret_key
-    STRIPE_WEBHOOK_SECRET     = var.stripe_webhook_secret
+    MAILGUN_API_KEY           = var.mailgun_api_key
     TWO_FACTOR_ENCRYPTION_KEY = var.two_factor_encryption_key
     WINSMS_API_KEY            = var.winsms_api_key
     REDIS_URL                 = module.redis.redis_url
@@ -92,12 +90,12 @@ module "customer_api" {
   key_vault_id                 = module.key_vault.vault_id
 
   env_vars = {
-    NODE_ENV               = var.environment
-    PORT                   = tostring(local.customer_api_port)
-    CORS_ORIGIN            = var.customer_web_url
-    STRIPE_PUBLISHABLE_KEY = var.stripe_publishable_key
-    MAILTRAP_FROM          = var.mailtrap_from
-    MAILTRAP_FROM_NAME     = var.mailtrap_from_name
+    NODE_ENV      = var.environment
+    PORT          = tostring(local.customer_api_port)
+    CORS_ORIGIN   = var.customer_web_url
+    MAILGUN_DOMAIN = var.mailgun_domain
+    MAILGUN_HOST   = var.mailgun_host
+    MAILGUN_FROM   = var.mailgun_from
   }
 
   secret_env_vars = {
@@ -108,9 +106,7 @@ module "customer_api" {
     AZURE_CLIENT_SECRET   = module.key_vault.secret_versionless_ids["AZURE_CLIENT_SECRET"]
     AZURE_API_AUDIENCE    = module.key_vault.secret_versionless_ids["AZURE_API_AUDIENCE"]
     AZURE_AUTHORITY       = module.key_vault.secret_versionless_ids["AZURE_AUTHORITY"]
-    MAILTRAP_API_KEY      = module.key_vault.secret_versionless_ids["MAILTRAP_API_KEY"]
-    STRIPE_SECRET_KEY     = module.key_vault.secret_versionless_ids["STRIPE_SECRET_KEY"]
-    STRIPE_WEBHOOK_SECRET = module.key_vault.secret_versionless_ids["STRIPE_WEBHOOK_SECRET"]
+    MAILGUN_API_KEY       = module.key_vault.secret_versionless_ids["MAILGUN_API_KEY"]
     WINSMS_API_KEY        = module.key_vault.secret_versionless_ids["WINSMS_API_KEY"]
     REDIS_URL             = module.key_vault.secret_versionless_ids["REDIS_URL"]
   }
@@ -136,11 +132,12 @@ module "admin_api" {
   key_vault_id                 = module.key_vault.vault_id
 
   env_vars = {
-    NODE_ENV           = var.environment
-    PORT               = tostring(local.admin_api_port)
-    CORS_ORIGIN        = var.admin_web_url
-    MAILTRAP_FROM      = var.mailtrap_from
-    MAILTRAP_FROM_NAME = var.mailtrap_from_name
+    NODE_ENV       = var.environment
+    PORT           = tostring(local.admin_api_port)
+    CORS_ORIGIN    = var.admin_web_url
+    MAILGUN_DOMAIN = var.mailgun_domain
+    MAILGUN_HOST   = var.mailgun_host
+    MAILGUN_FROM   = var.mailgun_from
   }
 
   secret_env_vars = {
@@ -151,7 +148,7 @@ module "admin_api" {
     AZURE_CLIENT_SECRET       = module.key_vault.secret_versionless_ids["AZURE_CLIENT_SECRET"]
     AZURE_API_AUDIENCE        = module.key_vault.secret_versionless_ids["AZURE_API_AUDIENCE"]
     AZURE_AUTHORITY           = module.key_vault.secret_versionless_ids["AZURE_AUTHORITY"]
-    MAILTRAP_API_KEY          = module.key_vault.secret_versionless_ids["MAILTRAP_API_KEY"]
+    MAILGUN_API_KEY           = module.key_vault.secret_versionless_ids["MAILGUN_API_KEY"]
     TWO_FACTOR_ENCRYPTION_KEY = module.key_vault.secret_versionless_ids["TWO_FACTOR_ENCRYPTION_KEY"]
     WINSMS_API_KEY            = module.key_vault.secret_versionless_ids["WINSMS_API_KEY"]
     REDIS_URL                 = module.key_vault.secret_versionless_ids["REDIS_URL"]
@@ -236,33 +233,40 @@ module "schedule_api" {
   depends_on = [module.networking, module.key_vault]
 }
 
-module "customer_web" {
+module "partner_api" {
   source = "./modules/container-apps"
 
   location                     = var.location
   environment                  = var.environment
   project_name                 = var.project_name
   resource_group_name          = module.networking.resource_group_name
-  service_name                 = "customer-web"
-  image                        = var.customer_web_image
-  port                         = local.customer_web_port
+  service_name                 = "partner-api"
+  image                        = var.partner_api_image
+  port                         = local.partner_api_port
   container_app_environment_id = module.networking.container_app_environment_id
-  min_replicas                 = var.customer_web_min_replicas
-  max_replicas                 = var.customer_web_max_replicas
+  min_replicas                 = var.partner_api_min_replicas
+  max_replicas                 = var.partner_api_max_replicas
   cpu                          = 0.5
   memory                       = "1Gi"
   key_vault_id                 = module.key_vault.vault_id
 
   env_vars = {
-    NODE_ENV               = var.environment
-    PORT                   = tostring(local.customer_web_port)
-    API_BASE_URL           = module.customer_api.service_url
-    STRIPE_PUBLISHABLE_KEY = var.stripe_publishable_key
+    NODE_ENV    = var.environment
+    PORT        = tostring(local.partner_api_port)
+    CORS_ORIGIN = var.admin_web_url
   }
 
-  secret_env_vars = {}
+  secret_env_vars = {
+    DATABASE_URL_SHARED = module.key_vault.secret_versionless_ids["DATABASE_URL_SHARED"]
+    AZURE_TENANT_ID     = module.key_vault.secret_versionless_ids["AZURE_TENANT_ID"]
+    AZURE_CLIENT_ID     = module.key_vault.secret_versionless_ids["AZURE_CLIENT_ID"]
+    AZURE_CLIENT_SECRET = module.key_vault.secret_versionless_ids["AZURE_CLIENT_SECRET"]
+    AZURE_API_AUDIENCE  = module.key_vault.secret_versionless_ids["AZURE_API_AUDIENCE"]
+    AZURE_AUTHORITY     = module.key_vault.secret_versionless_ids["AZURE_AUTHORITY"]
+    REDIS_URL           = module.key_vault.secret_versionless_ids["REDIS_URL"]
+  }
 
-  depends_on = [module.networking, module.customer_api]
+  depends_on = [module.networking, module.key_vault]
 }
 
 module "admin_web" {
@@ -272,7 +276,21 @@ module "admin_web" {
   environment         = var.environment
   project_name        = var.project_name
   resource_group_name = module.networking.resource_group_name
-  domain              = var.admin_web_domain
+  app_name             = "admin-web"
+  domain               = var.admin_web_domain
+
+  depends_on = [module.networking]
+}
+
+module "customer_web" {
+  source = "./modules/static-site"
+
+  location            = var.location
+  environment         = var.environment
+  project_name        = var.project_name
+  resource_group_name = module.networking.resource_group_name
+  app_name             = "customer-web"
+  domain               = var.customer_web_domain
 
   depends_on = [module.networking]
 }

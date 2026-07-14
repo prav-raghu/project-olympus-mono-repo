@@ -1,5 +1,5 @@
 output "login_server" {
-  description = "ACR login server hostname (e.g. khuladev.azurecr.io)"
+  description = "ACR login server hostname (e.g. projectolympusdev.azurecr.io)"
   value       = azurerm_container_registry.acr.login_server
 }
 
