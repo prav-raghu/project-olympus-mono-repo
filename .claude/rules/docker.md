@@ -4,11 +4,12 @@ paths:
   - "apps/frontend/*/Dockerfile"
   - "dev-ops/docker-compose*.yml"
   - "dev-ops/k8s/**"
+  - "docker-compose.yaml"
 ---
 
 # Docker & Kubernetes Rules
 
-You are working on containerization config for this monorepo. Each Dockerfile lives at the root of its own app — `apps/backend/<service>/Dockerfile`, `apps/frontend/<app>/Dockerfile` — not centralized under `dev-ops/`. Kubernetes manifests live under `dev-ops/k8s/`, and Docker Compose stacks at `dev-ops/docker-compose*.yml`.
+You are working on containerization config for this monorepo. Each Dockerfile lives at the root of its own app — `apps/backend/<service>/Dockerfile`, `apps/frontend/<app>/Dockerfile` — not centralized under `dev-ops/`. Kubernetes manifests live under `dev-ops/k8s/`, and Docker Compose stacks at `dev-ops/docker-compose*.yml`. The root `docker-compose.yaml` (repo root, not under `dev-ops/`) is a separate, single Coolify deployment stack — see `deployment-coolify.md`. It is `image:`-only (GHCR-pulled, built by `.github/workflows/docker-build.yml`), never `build:` — do not add a `build:` block to it, and do not confuse it with `dev-ops/docker-compose.yml`, which stays `build:`-based for the Azure/self-managed-Docker path.
 
 ## Build context is always the monorepo root
 

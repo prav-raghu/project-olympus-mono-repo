@@ -1,0 +1,199 @@
+services:
+    migrate:
+        image: ghcr.io/prav-raghu/admin-api:main
+        pull_policy: always
+        command: ["sh", "dev-ops/scripts/migrate-deploy.sh"]
+        environment:
+            - NODE_ENV=production
+            - DATABASE_URL_ADMIN=${DATABASE_URL_ADMIN}
+            - DATABASE_URL_CUSTOMER=${DATABASE_URL_CUSTOMER}
+            - DATABASE_URL_SCHEDULE=${DATABASE_URL_SCHEDULE}
+            - DATABASE_URL_SHARED=${DATABASE_URL_SHARED}
+        restart: "no"
+        networks:
+            - coolify
+
+    api-gateway:
+        image: ghcr.io/prav-raghu/api-gateway:main
+        pull_policy: always
+        environment:
+            - NODE_ENV=production
+            - PORT=4000
+            - AZURE_TENANT_ID=${AZURE_TENANT_ID}
+            - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+            - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+            - AZURE_API_AUDIENCE=${AZURE_API_AUDIENCE}
+            - AZURE_AUTHORITY=${AZURE_AUTHORITY}
+            - DATABASE_URL_ADMIN=${DATABASE_URL_ADMIN}
+            - DATABASE_URL_CUSTOMER=${DATABASE_URL_CUSTOMER}
+            - DATABASE_URL_SCHEDULE=${DATABASE_URL_SCHEDULE}
+            - DATABASE_URL_SHARED=${DATABASE_URL_SHARED}
+            - REDIS_URL=${REDIS_URL}
+            - APPLICATIONINSIGHTS_CONNECTION_STRING=${APPLICATIONINSIGHTS_CONNECTION_STRING}
+        depends_on:
+            migrate:
+                condition: service_completed_successfully
+            admin-api:
+                condition: service_healthy
+            customer-api:
+                condition: service_healthy
+            schedule-api:
+                condition: service_healthy
+            partner-api:
+                condition: service_healthy
+        healthcheck:
+            test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4000/health || exit 1"]
+            interval: 15s
+            timeout: 5s
+            retries: 3
+            start_period: 40s
+        restart: unless-stopped
+        networks:
+            - coolify
+
+    admin-api:
+        image: ghcr.io/prav-raghu/admin-api:main
+        pull_policy: always
+        environment:
+            - NODE_ENV=production
+            - PORT=4001
+            - AZURE_TENANT_ID=${AZURE_TENANT_ID}
+            - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+            - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+            - AZURE_API_AUDIENCE=${AZURE_API_AUDIENCE}
+            - AZURE_AUTHORITY=${AZURE_AUTHORITY}
+            - DATABASE_URL_ADMIN=${DATABASE_URL_ADMIN}
+            - DATABASE_URL_SHARED=${DATABASE_URL_SHARED}
+            - REDIS_URL=${REDIS_URL}
+            - APPLICATIONINSIGHTS_CONNECTION_STRING=${APPLICATIONINSIGHTS_CONNECTION_STRING}
+        depends_on:
+            migrate:
+                condition: service_completed_successfully
+        healthcheck:
+            test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4001/health || exit 1"]
+            interval: 15s
+            timeout: 5s
+            retries: 3
+            start_period: 40s
+        restart: unless-stopped
+        networks:
+            - coolify
+
+    customer-api:
+        image: ghcr.io/prav-raghu/customer-api:main
+        pull_policy: always
+        environment:
+            - NODE_ENV=production
+            - PORT=4002
+            - AZURE_TENANT_ID=${AZURE_TENANT_ID}
+            - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+            - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+            - AZURE_API_AUDIENCE=${AZURE_API_AUDIENCE}
+            - AZURE_AUTHORITY=${AZURE_AUTHORITY}
+            - DATABASE_URL_CUSTOMER=${DATABASE_URL_CUSTOMER}
+            - DATABASE_URL_SHARED=${DATABASE_URL_SHARED}
+            - REDIS_URL=${REDIS_URL}
+            - APPLICATIONINSIGHTS_CONNECTION_STRING=${APPLICATIONINSIGHTS_CONNECTION_STRING}
+        depends_on:
+            migrate:
+                condition: service_completed_successfully
+        healthcheck:
+            test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4002/health || exit 1"]
+            interval: 15s
+            timeout: 5s
+            retries: 3
+            start_period: 40s
+        restart: unless-stopped
+        networks:
+            - coolify
+
+    schedule-api:
+        image: ghcr.io/prav-raghu/schedule-api:main
+        pull_policy: always
+        environment:
+            - NODE_ENV=production
+            - PORT=4003
+            - AZURE_TENANT_ID=${AZURE_TENANT_ID}
+            - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+            - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+            - AZURE_API_AUDIENCE=${AZURE_API_AUDIENCE}
+            - AZURE_AUTHORITY=${AZURE_AUTHORITY}
+            - DATABASE_URL_SCHEDULE=${DATABASE_URL_SCHEDULE}
+            - DATABASE_URL_SHARED=${DATABASE_URL_SHARED}
+            - REDIS_URL=${REDIS_URL}
+            - APPLICATIONINSIGHTS_CONNECTION_STRING=${APPLICATIONINSIGHTS_CONNECTION_STRING}
+        depends_on:
+            migrate:
+                condition: service_completed_successfully
+        healthcheck:
+            test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4003/health || exit 1"]
+            interval: 15s
+            timeout: 5s
+            retries: 3
+            start_period: 40s
+        restart: unless-stopped
+        networks:
+            - coolify
+
+    partner-api:
+        image: ghcr.io/prav-raghu/partner-api:main
+        pull_policy: always
+        environment:
+            - NODE_ENV=production
+            - PORT=4004
+            - AZURE_TENANT_ID=${AZURE_TENANT_ID}
+            - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+            - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+            - AZURE_API_AUDIENCE=${AZURE_API_AUDIENCE}
+            - AZURE_AUTHORITY=${AZURE_AUTHORITY}
+            - DATABASE_URL_SHARED=${DATABASE_URL_SHARED}
+            - REDIS_URL=${REDIS_URL}
+            - APPLICATIONINSIGHTS_CONNECTION_STRING=${APPLICATIONINSIGHTS_CONNECTION_STRING}
+        depends_on:
+            migrate:
+                condition: service_completed_successfully
+        healthcheck:
+            test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4004/health || exit 1"]
+            interval: 15s
+            timeout: 5s
+            retries: 3
+            start_period: 40s
+        restart: unless-stopped
+        networks:
+            - coolify
+
+    admin-web:
+        image: ghcr.io/prav-raghu/admin-web:main
+        pull_policy: always
+        depends_on:
+            api-gateway:
+                condition: service_healthy
+        healthcheck:
+            test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/ || exit 1"]
+            interval: 15s
+            timeout: 5s
+            retries: 3
+            start_period: 20s
+        restart: unless-stopped
+        networks:
+            - coolify
+
+    customer-web:
+        image: ghcr.io/prav-raghu/customer-web:main
+        pull_policy: always
+        depends_on:
+            api-gateway:
+                condition: service_healthy
+        healthcheck:
+            test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/ || exit 1"]
+            interval: 15s
+            timeout: 5s
+            retries: 3
+            start_period: 20s
+        restart: unless-stopped
+        networks:
+            - coolify
+
+networks:
+    coolify:
+        external: true

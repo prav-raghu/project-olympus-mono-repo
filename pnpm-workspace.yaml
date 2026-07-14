@@ -4,6 +4,7 @@ packages:
   - "apps/mobile/*"
   # apps/cms is excluded — Directus runs as a Docker container, not a pnpm package
   - "common/*"
+verifyDepsBeforeRun: false
 allowBuilds:
   '@nestjs/core': true
   '@parcel/watcher': true

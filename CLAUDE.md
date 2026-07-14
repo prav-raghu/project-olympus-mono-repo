@@ -23,7 +23,9 @@ The Angular + NestJS counterpart to `node-mono-repo-template` — same monorepo 
 | `webhook-events` | Outbound webhooks and the internal event bus |
 | `feature-flags` | DB-backed feature flag store and evaluation |
 | `external-api` | New `common/external-apis/` integrations (forRootAsync pattern) |
-| `infrastructure` | Terraform (Azure only), Kubernetes, Docker Compose, NGINX |
+| `infrastructure` | Terraform (Azure canonical; AWS/GCP structural stubs), Kubernetes, Docker Compose, NGINX |
+| `vps-bootstrap` | One-time fresh-VPS setup — prerequisite to deployment-coolify |
+| `deployment-coolify` | Additional self-hosted deploy path: Coolify, GHCR image builds, managed MySQL/Redis, DNS — Azure remains primary |
 | `testing` | Unit/integration tests, Jest config, factories |
 | `typescript-standards` | Type-safety review outside a full code review |
 | `code-review` | Full quality/security audit |
@@ -40,14 +42,18 @@ Files under `.claude/rules/` load automatically when a matching file enters cont
 | `frontend.md` | `apps/frontend/**/*.ts`, `**/*.html` |
 | `mobile.md` | `apps/mobile/**/*.ts`, `**/*.html` |
 | `prisma.md` | `common/database/prisma/**`, `common/database/src/**` |
-| `docker.md` | `apps/backend/*/Dockerfile`, `apps/frontend/*/Dockerfile`, `dev-ops/docker-compose*.yml`, `dev-ops/k8s/**` |
+| `docker.md` | `apps/backend/*/Dockerfile`, `apps/frontend/*/Dockerfile`, `dev-ops/docker-compose*.yml`, `dev-ops/k8s/**`, `docker-compose.yaml` (repo root) |
 | `testing.md` | `**/*.test.ts`, `**/*.spec.ts`, `**/tests/**/*.ts` |
 
-## Deployment — Azure only
+## Deployment — Azure is canonical; Coolify is an additional self-hosted path
 
-This project provisions and deploys to **Azure exclusively** (Container Apps/AKS, Azure Database for MySQL Flexible Server, Azure Cache for Redis, Azure Blob Storage, Application Insights) — see `infrastructure.md`. No other cloud provider is used.
+This project's primary, cloud-provisioned deployment target is **Azure** (Container Apps/AKS, Azure Database for MySQL Flexible Server, Azure Cache for Redis, Azure Blob Storage, Application Insights) — see `infrastructure.md`. Auth stays on Azure MSAL regardless of which deployment path is active.
 
-`dev-ops/docker-compose.yml`, per-service `Dockerfile`s (now under `apps/backend/*/Dockerfile`, not `dev-ops/docker/`), `dev-ops/k8s/*.yaml`, and `infrastructure/terraform/azure/*` have been reconciled to the MySQL + Azure MSAL + multi-schema `DATABASE_URL_*` + ports 4000–4004 target state described in `infrastructure.md` and `rules/docker.md`. Remaining known gaps: `infrastructure/terraform/azure/environments/staging.tfvars` and `prod.tfvars` (only `dev.tfvars` was reconciled) and `infrastructure/terraform/azure/terraform.tfvars.example` still reference the old `khula*`/Postgres-era naming; the `key-vault` module has a pre-existing `sensitive` value used in a `for_each` (Terraform-invalid, blocks `validate` regardless of secret content); `static-site` module's `outputs.tf` references a CDN attribute not in the pinned `azurerm` provider version.
+Alongside Azure, this project also supports deploying to a **self-hosted VPS via Coolify**, mirroring the `zynkosi-tech` sibling template's canonical deploy path: `vps-bootstrap` runs once on a fresh server (installs Coolify); `deployment-coolify` covers everything after that (root `docker-compose.yaml`, GHCR image builds via `.github/workflows/docker-build.yml`, Coolify-managed MySQL/Redis, DNS). The root `docker-compose.yaml` is a separate stack from `dev-ops/docker-compose.yml` — see `rules/docker.md`. Use Coolify only when explicitly asked; new infrastructure work defaults to Azure.
+
+`infrastructure/terraform/aws/` and `infrastructure/terraform/gcp/` also exist, mirroring the Azure module structure (ECS/RDS MySQL/ElastiCache vs. Cloud Run/Cloud SQL MySQL/Memorystore) — see `infrastructure/terraform/README.md`. These are **structural stubs, not provisioned or deployed today**; they exist so a future multi-cloud requirement doesn't need a redesign. Do not run `terraform apply` against them without the user explicitly asking to activate that path.
+
+`dev-ops/docker-compose.yml`, per-service `Dockerfile`s (now under `apps/backend/*/Dockerfile` and `apps/frontend/*/Dockerfile`, not `dev-ops/docker/`), `dev-ops/k8s/*.yaml`, and `infrastructure/terraform/azure/*` have been reconciled to the MySQL + Azure MSAL + multi-schema `DATABASE_URL_*` + ports 4000–4004 target state described in `infrastructure.md` and `rules/docker.md`. Remaining known gaps: `infrastructure/terraform/azure/environments/staging.tfvars` and `prod.tfvars` (only `dev.tfvars` was reconciled) and `infrastructure/terraform/azure/terraform.tfvars.example` still reference the old `khula*`/Postgres-era naming; the `key-vault` module has a pre-existing `sensitive` value used in a `for_each` (Terraform-invalid, blocks `validate` regardless of secret content); `static-site` module's `outputs.tf` references a CDN attribute not in the pinned `azurerm` provider version; `infrastructure/terraform/main.tf` (the file directly under `infrastructure/terraform/`, not inside `azure/`/`aws/`/`gcp/`) is orphaned leftover generic AWS example code unrelated to this project — flagged, not deleted, pending the developer's call. Angular's `admin-web`/`customer-web` have no `fileReplacements` wired in `angular.json`, so `environment.prod.ts` is currently dead code — build-time config injection (the equivalent of Vite/Next `ARG`-baked env vars used in the Coolify Dockerfiles) isn't wired up yet on either deployment path.
 
 ## Skills (invoke with /name or auto-invoked by description match)
 
@@ -107,8 +113,9 @@ apps/mobile/           Ionic Angular + Capacitor (customer-mobile)
 apps/cms/               Directus (Docker-based, managed independently)
 apps/automation/        n8n
 common/                  shared packages only
-dev-ops/                  Docker, Docker Compose, Kubernetes manifests
-infrastructure/            NGINX, Terraform (Azure only)
+dev-ops/                  Docker, Docker Compose, Kubernetes manifests, VPS bootstrap + Coolify migrate scripts
+infrastructure/            NGINX, Terraform (Azure canonical; aws/ and gcp/ are structural stubs)
+docker-compose.yaml         repo-root file (not a new top-level folder) — Coolify deployment stack, see rules/docker.md
 documentation/               markdown docs
 .github/                       CI/CD workflows only — agent/instruction config lives in .claude/
 .claude/                        Claude Code configuration

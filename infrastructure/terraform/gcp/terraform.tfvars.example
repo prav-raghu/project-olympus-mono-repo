@@ -1,0 +1,20 @@
+gcp_project_id = "your-gcp-project-id"
+
+api_gateway_image  = "africa-south1-docker.pkg.dev/your-gcp-project-id/project-olympus-dev/api-gateway:latest"
+admin_api_image    = "africa-south1-docker.pkg.dev/your-gcp-project-id/project-olympus-dev/admin-api:latest"
+customer_api_image = "africa-south1-docker.pkg.dev/your-gcp-project-id/project-olympus-dev/customer-api:latest"
+schedule_api_image = "africa-south1-docker.pkg.dev/your-gcp-project-id/project-olympus-dev/schedule-api:latest"
+partner_api_image  = "africa-south1-docker.pkg.dev/your-gcp-project-id/project-olympus-dev/partner-api:latest"
+
+azure_tenant_id     = ""
+azure_client_id     = ""
+azure_client_secret = ""
+azure_api_audience  = ""
+azure_authority     = "https://login.microsoftonline.com/<tenant-id>"
+
+applicationinsights_connection_string = ""
+
+mysql_master_password = ""
+
+admin_web_domain    = ""
+customer_web_domain = ""

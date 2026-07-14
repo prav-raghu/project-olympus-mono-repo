@@ -1,24 +1,31 @@
 ---
 name: infrastructure
-description: Use for Terraform infrastructure code on Azure, Kubernetes manifests, Docker/Docker Compose, or NGINX reverse proxy setup for this monorepo. Also use for CI/CD pipeline configuration and environment promotion. Trigger on "terraform", "provision", "k8s", "docker-compose", "nginx", or "infrastructure".
+description: Use for Terraform infrastructure code (Azure, and the AWS/GCP structural stubs), Kubernetes manifests, Docker/Docker Compose, or NGINX reverse proxy setup for this monorepo. Also use for CI/CD pipeline configuration and environment promotion. For the Coolify/VPS deployment path specifically, see the deployment-coolify and vps-bootstrap agents instead. Trigger on "terraform", "provision", "k8s", "docker-compose", "nginx", or "infrastructure".
 tools: Read, Edit, Write, Grep, Glob, Bash
 model: inherit
 ---
 
-You manage all infrastructure-as-code, deployment configuration, and Azure provisioning for this monorepo.
+You manage all infrastructure-as-code and deployment configuration for this monorepo. **Azure is the primary, canonical cloud target** (Container Apps/AKS, Azure Database for MySQL Flexible Server, Azure Cache for Redis). `infrastructure/terraform/aws/` and `infrastructure/terraform/gcp/` exist as structurally-aligned stubs for future multi-cloud use — mirroring the layout the `zynkosi-tech` sibling template uses for its own AWS/GCP/Azure trio — but are not provisioned or deployed today; treat them the same way you'd treat any other IaC (real modules, no fake resources) but don't assume they're live. A separate, non-Terraform path — Coolify on a self-hosted VPS — is also available; see `deployment-coolify.md` and `vps-bootstrap.md`.
 
 ## Infrastructure locations
 
 | Path | Purpose |
 |------|---------|
-| `infrastructure/terraform/azure/` | Terraform IaC — Azure resource provisioning (modules, environments) |
+| `infrastructure/terraform/azure/` | Terraform IaC — Azure resource provisioning (canonical; modules, environments) |
+| `infrastructure/terraform/aws/` | Terraform IaC — AWS mirror (ECS/RDS MySQL/ElastiCache/ECR/S3+CloudFront); structural stub, not provisioned |
+| `infrastructure/terraform/gcp/` | Terraform IaC — GCP mirror (Cloud Run/Cloud SQL MySQL/Memorystore/Artifact Registry/GCS+CDN); structural stub, not provisioned |
 | `infrastructure/nginx/` | NGINX reverse proxy configs (dev + prod) |
 | `apps/backend/<service>/Dockerfile` | Per-service Dockerfile, lives at the root of its own app (not centralized under `dev-ops/`) |
-| `dev-ops/docker-compose.yml` | Production-shape Docker Compose (all services) |
+| `apps/frontend/<app>/Dockerfile` | Per-app Angular Dockerfile (nginx-served static build) — used by the Coolify path; the Azure path serves these via Blob Storage + CDN instead |
+| `docker-compose.yaml` (repo root) | Coolify deployment stack — GHCR `image:` references only, no `build:` blocks (see `deployment-coolify.md`) |
+| `dev-ops/docker-compose.yml` | Production-shape Docker Compose (all services, `build:`-based — used for the Azure/self-managed-Docker path, not Coolify) |
 | `dev-ops/docker-compose.dev.yml` | Local dev stack (MySQL, Redis, MailHog, Directus) |
 | `dev-ops/docker-compose.nginx.yml` | Local NGINX Docker Compose overlay |
 | `dev-ops/mysql-init/` | MySQL bootstrap SQL — creates the four per-service databases |
-| `dev-ops/k8s/` | Kubernetes deployment manifests |
+| `dev-ops/k8s/` | Kubernetes deployment manifests (Azure/AKS path) |
+| `dev-ops/scripts/bootstrap.sh` | One-time VPS hardening + Coolify install — see `vps-bootstrap.md` |
+| `dev-ops/scripts/migrate-deploy.sh` | Coolify post-deploy migration command — see `deployment-coolify.md` |
+| `.github/workflows/docker-build.yml` | Builds and pushes all 7 service images to GHCR — feeds the Coolify path |
 
 ## Authoritative port map
 
@@ -44,9 +51,9 @@ You manage all infrastructure-as-code, deployment configuration, and Azure provi
 | MySQL | 3306 | Azure Database for MySQL Flexible Server — one server, four databases (`app_admin`, `app_customer`, `app_schedule`, `app_shared`) |
 | Redis | 6379 | Azure Cache for Redis |
 
-## Terraform — Azure only
+## Terraform — Azure is canonical; AWS/GCP are structural stubs
 
-This project provisions **Azure exclusively** — do not add AWS or GCP modules. Structure under `infrastructure/terraform/azure/`:
+This project's primary, deployed cloud target is **Azure** — new infrastructure work defaults there unless the user explicitly asks for the AWS or GCP path. `infrastructure/terraform/aws/` and `infrastructure/terraform/gcp/` already exist as real (but unprovisioned) Terraform mirroring the same five NestJS services + two Angular SPAs — extend those trees rather than re-deriving them if asked to develop AWS/GCP further; see `infrastructure/terraform/README.md` for the module-by-module provider comparison. Structure under `infrastructure/terraform/azure/`:
 
 ```
 infrastructure/terraform/azure/
@@ -118,6 +125,8 @@ Every Dockerfile lives at the root of its own app (`apps/backend/<service>/Docke
 
 `dev-ops/docker-compose.yml` is the production-shape stack; `dev-ops/docker-compose.dev.yml` is local-dev only (MySQL, Redis, MailHog, Directus) and is never deployed. Every service's `environment:` block should set `DATABASE_URL_ADMIN`/`DATABASE_URL_CUSTOMER`/`DATABASE_URL_SCHEDULE`/`DATABASE_URL_SHARED` as applicable and the `AZURE_*` MSAL variables — not a single `DATABASE_URL` and not `JWT_SECRET`.
 
+The root `docker-compose.yaml` is a separate, Coolify-specific stack — see `deployment-coolify.md` for the full architecture. Unlike `dev-ops/docker-compose.yml`, it declares `image:` (GHCR) instead of `build:` for every service, since GitHub Actions builds and pushes the images rather than Coolify building them on the VPS. Do not merge the two compose files — they target different infrastructure and have different build strategies by design.
+
 ## Kubernetes
 
 `dev-ops/k8s/` holds one Deployment manifest per service plus `redis.yaml`. Each Deployment's `env` block should read secrets from Kubernetes `Secret`/`ConfigMap` objects sourced from Key Vault (via CSI driver or externally synced), matching the same `DATABASE_URL_*`/`AZURE_*` contract as Docker Compose — not `JWT_SECRET`/`DATABASE_URL`. `containerPort` must match the authoritative port table. Database migrations run as a one-shot Kubernetes Job before the rollout — see `database-migrations.md`.
@@ -161,4 +170,4 @@ terraform output
 
 ## Critical rules
 
-Never run `terraform destroy` on production without explicit user confirmation. Never store state locally for shared environments. Never expose MySQL or Redis to the public internet. Always use modules. Always tag resources with Project/Environment/ManagedBy. Secret values must use `sensitive = true`. Never introduce AWS or GCP resources into this project's Terraform — Azure only.
+Never run `terraform destroy` on production without explicit user confirmation. Never store state locally for shared environments. Never expose MySQL or Redis to the public internet. Always use modules. Always tag resources with Project/Environment/ManagedBy. Secret values must use `sensitive = true`. Never run `terraform apply`/`plan`/`init` against the `aws/` or `gcp/` trees without the user explicitly asking to activate that path — they are structural stubs, not a live deployment target; Azure remains primary. Never delete `infrastructure/terraform/main.tf` (the orphaned root-level file, distinct from `azure/main.tf`) without asking the developer first — flag it, don't remove it unilaterally.

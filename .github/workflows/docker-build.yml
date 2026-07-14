@@ -1,0 +1,108 @@
+name: Docker Build and Push
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      api-gateway: ${{ steps.filter.outputs.api-gateway }}
+      admin-api: ${{ steps.filter.outputs.admin-api }}
+      customer-api: ${{ steps.filter.outputs.customer-api }}
+      schedule-api: ${{ steps.filter.outputs.schedule-api }}
+      partner-api: ${{ steps.filter.outputs.partner-api }}
+      admin-web: ${{ steps.filter.outputs.admin-web }}
+      customer-web: ${{ steps.filter.outputs.customer-web }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            common: &common
+              - 'common/**'
+              - 'pnpm-workspace.yaml'
+              - 'pnpm-lock.yaml'
+              - 'turbo.json'
+            api-gateway:
+              - *common
+              - 'apps/backend/api-gateway/**'
+            admin-api:
+              - *common
+              - 'apps/backend/admin-api/**'
+            customer-api:
+              - *common
+              - 'apps/backend/customer-api/**'
+            schedule-api:
+              - *common
+              - 'apps/backend/schedule-api/**'
+            partner-api:
+              - *common
+              - 'apps/backend/partner-api/**'
+            admin-web:
+              - *common
+              - 'apps/frontend/admin-web/**'
+            customer-web:
+              - *common
+              - 'apps/frontend/customer-web/**'
+
+  build:
+    needs: changes
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - service: api-gateway
+            dockerfile: apps/backend/api-gateway/Dockerfile
+            changed: ${{ needs.changes.outputs.api-gateway }}
+          - service: admin-api
+            dockerfile: apps/backend/admin-api/Dockerfile
+            changed: ${{ needs.changes.outputs.admin-api }}
+          - service: customer-api
+            dockerfile: apps/backend/customer-api/Dockerfile
+            changed: ${{ needs.changes.outputs.customer-api }}
+          - service: schedule-api
+            dockerfile: apps/backend/schedule-api/Dockerfile
+            changed: ${{ needs.changes.outputs.schedule-api }}
+          - service: partner-api
+            dockerfile: apps/backend/partner-api/Dockerfile
+            changed: ${{ needs.changes.outputs.partner-api }}
+          - service: admin-web
+            dockerfile: apps/frontend/admin-web/Dockerfile
+            changed: ${{ needs.changes.outputs.admin-web }}
+          - service: customer-web
+            dockerfile: apps/frontend/customer-web/Dockerfile
+            changed: ${{ needs.changes.outputs.customer-web }}
+    steps:
+      - uses: actions/checkout@v4
+        if: matrix.changed == 'true'
+
+      - name: Log in to GHCR
+        if: matrix.changed == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set short SHA
+        if: matrix.changed == 'true'
+        id: sha
+        run: echo "short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        if: matrix.changed == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.service }}:main
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.service }}:sha-${{ steps.sha.outputs.short }}
