@@ -24,7 +24,6 @@
         "@project-olympus/cache": "workspace:*",
         "@project-olympus/config": "workspace:*",
         "@project-olympus/database": "workspace:*",
-        "@project-olympus/email": "workspace:*",
         "@project-olympus/logging": "workspace:*",
         "@project-olympus/types": "workspace:*",
         "@project-olympus/utilities": "workspace:*",
