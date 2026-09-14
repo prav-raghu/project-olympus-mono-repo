@@ -102,6 +102,7 @@ Requires Python 3.x. This is optional — `.claude/skills/ui-ux-pro-max/SKILL.md
 - Use `#region` / `#endregion` for logical code grouping in TypeScript/C#
 - Before marking any TypeScript task complete, run `pnpm --filter <app> typecheck` — zero errors required
 - All frontend forms must implement the full validation chain — see `validation-chain.instructions.md`: client `Validators` failures show inline, server errors show in a `serverError` signal/toast, never the other way round
+- No god structures: never name a controller, service, DTO, or file after the project/app itself (e.g. `olympus.controller.ts`, `admin.service.ts`) as a catch-all that encapsulates every entity's logic. Each entity gets its own service layer and DTOs under its own file, named after the entity (`user.service.ts`, `user.dto.ts`). A controller may still be entity-scoped (`user.controller.ts`) or composed into a dashboard/aggregate controller that calls into per-entity services — the composition happens at the controller/route layer, never by collapsing entity logic into one shared file. See `.claude/agents/backend-service.md` and `.claude/agents/api-builder.md` for the controller/service/DTO file layout this produces.
 - please build all apps using tsconfig tsc to ensure no build surprise errors during deployment run.
 
 ## Folder structure (immutable)

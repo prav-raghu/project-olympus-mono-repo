@@ -9,3 +9,4 @@ export * from "./upload.types";
 export * from "./roles";
 export * from "./permissions";
 export * from "./rbac";
+export * from "./disposable-email-domains";

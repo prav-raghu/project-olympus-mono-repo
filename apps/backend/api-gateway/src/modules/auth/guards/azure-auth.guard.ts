@@ -1,9 +1,16 @@
-import { type CanActivate, type ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  type CanActivate,
+  type ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { MsalTokenValidator } from '@project-olympus/auth';
+import { RedisService } from '@project-olympus/cache';
 
 @Injectable()
 export class AzureAuthGuard implements CanActivate {
   private readonly validator: MsalTokenValidator;
+  private readonly redis = RedisService.getInstance();
 
   constructor() {
     this.validator = new MsalTokenValidator({
@@ -18,7 +25,9 @@ export class AzureAuthGuard implements CanActivate {
 
   public async canActivate(context: ExecutionContext): Promise<boolean> {
     const http = context.switchToHttp();
-    const request = http.getRequest<Record<string, unknown> & { headers: Record<string, string | string[] | undefined> }>();
+    const request = http.getRequest<
+      Record<string, unknown> & { headers: Record<string, string | string[] | undefined> }
+    >();
     const authHeader = request.headers['authorization'];
     const token = Array.isArray(authHeader) ? authHeader[0] : authHeader;
 
@@ -28,6 +37,12 @@ export class AzureAuthGuard implements CanActivate {
 
     try {
       const claims = await this.validator.validate(token);
+
+      const isInvalidated = await this.redis.isSessionInvalidated(claims.oid, claims.iat);
+      if (isInvalidated) {
+        throw new UnauthorizedException('Session has been signed out — please sign in again');
+      }
+
       request['user'] = {
         id: claims.oid,
         email: claims.preferred_username ?? claims.email ?? '',
@@ -37,7 +52,10 @@ export class AzureAuthGuard implements CanActivate {
         azureOid: claims.oid,
       };
       return true;
-    } catch {
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
       throw new UnauthorizedException('Invalid or expired token');
     }
   }

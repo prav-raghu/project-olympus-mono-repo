@@ -167,6 +167,22 @@ export class CreateUserFormComponent {
 }
 ```
 
+## Email — reject disposable/throwaway domains (service layer, after DTO validation)
+
+`@IsEmail()` (`class-validator`) and `Validators.email` (Angular) only validate syntax — they accept `anything@yopmail.com` just as happily as a real address. Domain-reputation is a business rule, not a shape constraint, so it's checked the same way a uniqueness constraint is: in the service layer, after the DTO's `ValidationPipe` passes, before the write.
+
+```typescript
+import { isDisposableEmailDomain } from '@project-olympus/types';
+
+if (isDisposableEmailDomain(dto.email)) {
+  throw new BadRequestException('Please use a permanent email address');
+}
+```
+
+`isDisposableEmailDomain` checks against `DISPOSABLE_EMAIL_DOMAINS` in `common/types/src/disposable-email-domains.ts` — extend that list as new throwaway providers show up; it's a plain `Set<string>`, not a package dependency, so there's no install step to add a domain. This returns `400`, the same status as any other DTO-shape failure, with a field-less message (surfaces as a `serverError` signal/toast per the error-behaviour rules above, not an inline field error, since it's a server-side business rule rather than a client-side shape check).
+
+Note: the seed list includes `proton.me`/`protonmail.com` alongside actual disposable-inbox services (`yopmail.*`, `mailinator.com`, `guerrillamail.*`, etc.) per explicit product decision — ProtonMail is a real, permanent mailbox provider, not a throwaway service, so this blocks legitimate privacy-conscious signups along with the intended throwaway ones. Revisit this specific entry if that tradeoff turns out to cost more signups than it prevents abuse.
+
 ## Rules — always enforced
 
 - Angular `Validators` are derived FROM the `class-validator` decorators. Never write one without updating the other.

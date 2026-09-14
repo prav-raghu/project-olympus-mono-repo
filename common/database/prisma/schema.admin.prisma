@@ -73,6 +73,20 @@ model UserStatus {
   @@map("user_statuses")
 }
 
+// Singleton lock for the one-time /auth/bootstrap-admin flow — see rbac.md's
+// "Admin bootstrap" section. adminBootstrapped is the actual gate, not "does
+// an Administrator user currently exist" (that check can be defeated by
+// demoting or deleting the bootstrapped admin later). Never unset by any
+// application code path once true.
+model SystemBootstrap {
+  id                          String    @id @db.VarChar(36) @map("id")
+  adminBootstrapped           Boolean   @default(false) @map("admin_bootstrapped")
+  bootstrappedAt              DateTime? @db.DateTime(0) @map("bootstrapped_at")
+  bootstrappedByAzureObjectId String?   @db.VarChar(36) @map("bootstrapped_by_azure_object_id")
+
+  @@map("system_bootstrap")
+}
+
 model WebhookSubscription {
   id              String            @id @db.VarChar(36) @map("id")
   url             String            @db.VarChar(2048) @map("url")
