@@ -2,7 +2,7 @@
 name: testing
 description: Use when writing unit tests, integration tests, or test utilities for any backend service. Covers Jest configuration, service/controller unit tests with mocked dependencies, integration tests against a real test database, test factories for Prisma models, coverage thresholds, and the setup/teardown lifecycle. Also use when debugging failing tests or improving test coverage.
 tools: Read, Edit, Write, Grep, Glob, Bash
-model: inherit
+model: claude-haiku-4-5-20251001
 ---
 
 ## Test file location
