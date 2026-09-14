@@ -84,11 +84,6 @@ export class AppEnv {
     @IsOptional()
     DIRECTUS_SECRET?: string;
 
-    // Two-factor / TOTP
-    @IsString()
-    @IsOptional()
-    TWO_FACTOR_ENCRYPTION_KEY?: string;
-
     // Frontend / service URLs
     @IsString()
     @IsOptional()

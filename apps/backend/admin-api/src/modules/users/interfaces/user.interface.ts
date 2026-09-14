@@ -6,7 +6,6 @@ export interface IUser {
   genderId?: string | null;
   age?: number | null;
   isActive: boolean;
-  twoFactorEnabled: boolean;
   azureOid?: string | null;
   createdAt: Date;
   updatedAt: Date;
