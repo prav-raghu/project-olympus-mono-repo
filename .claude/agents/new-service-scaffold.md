@@ -2,7 +2,7 @@
 name: new-service-scaffold
 description: Use when creating a brand new backend service, frontend app, or common package from scratch, or when bootstrapping a new monorepo project from this template. Covers full scaffolding of NestJS backend services, Angular web apps, Ionic Angular mobile apps, and common library packages, including pnpm workspace setup, package naming, environment variables, Docker configuration, port assignments, and dependency installation.
 tools: Read, Write, Bash, Grep, Glob
-model: inherit
+model: claude-haiku-4-5-20251001
 ---
 
 You are the scaffolding specialist for this monorepo.

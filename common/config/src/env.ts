@@ -1,23 +1,23 @@
-import { IsEnum, IsInt, IsOptional, IsString, IsUrl, Min, validateSync } from 'class-validator';
-import { plainToInstance } from 'class-transformer';
+import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, IsUrl, Min, validateSync } from "class-validator";
+import { plainToInstance } from "class-transformer";
 
 export class AppEnv {
-    @IsEnum(['development', 'production', 'test'])
-    NODE_ENV: 'development' | 'production' | 'test' = 'development';
+    @IsEnum(["development", "production", "test"])
+    NODE_ENV: "development" | "production" | "test" = "development";
 
     @IsInt()
     @Min(1)
     PORT: number = 4000;
 
     @IsString()
-    CORS_ORIGIN: string = 'http://localhost:4200';
+    CORS_ORIGIN: string = "http://localhost:4200";
 
     // Azure MSAL
     @IsString()
-    AZURE_TENANT_ID: string = '';
+    AZURE_TENANT_ID: string = "";
 
     @IsString()
-    AZURE_CLIENT_ID: string = '';
+    AZURE_CLIENT_ID: string = "";
 
     @IsString()
     @IsOptional()
@@ -31,6 +31,11 @@ export class AppEnv {
     @IsOptional()
     AZURE_AUTHORITY?: string;
 
+    // Admin bootstrap (admin-api only) — see rbac.md's "Admin bootstrap" section
+    @IsBoolean()
+    @IsOptional()
+    ADMIN_BOOTSTRAP_ENABLED: boolean = false;
+
     // Azure Monitor
     @IsString()
     @IsOptional()
@@ -38,16 +43,16 @@ export class AppEnv {
 
     // MySQL multi-db
     @IsString()
-    DATABASE_URL_ADMIN: string = '';
+    DATABASE_URL_ADMIN: string = "";
 
     @IsString()
-    DATABASE_URL_CUSTOMER: string = '';
+    DATABASE_URL_CUSTOMER: string = "";
 
     @IsString()
-    DATABASE_URL_SCHEDULE: string = '';
+    DATABASE_URL_SCHEDULE: string = "";
 
     @IsString()
-    DATABASE_URL_SHARED: string = '';
+    DATABASE_URL_SHARED: string = "";
 
     @IsInt()
     @Min(1)
@@ -55,7 +60,7 @@ export class AppEnv {
 
     // Redis
     @IsString()
-    REDIS_URL: string = 'redis://localhost:6379';
+    REDIS_URL: string = "redis://localhost:6379";
 
     // Mailgun
     @IsString()
@@ -78,11 +83,6 @@ export class AppEnv {
     @IsString()
     @IsOptional()
     DIRECTUS_SECRET?: string;
-
-    // Two-factor / TOTP
-    @IsString()
-    @IsOptional()
-    TWO_FACTOR_ENCRYPTION_KEY?: string;
 
     // Frontend / service URLs
     @IsString()

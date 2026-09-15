@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpCode,
   Param,
@@ -15,7 +14,6 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { Verify2FADto } from './dto/verify-2fa.dto';
 import { AzureAuthGuard } from '../auth/guards/azure-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AzureUser } from '@project-olympus/auth';
@@ -103,37 +101,6 @@ export class UsersController {
     @Body() dto: UpdateUserDto,
   ): Promise<unknown> {
     return this.usersService.updateProfile(user.id, dto);
-  }
-
-  // #endregion
-
-  // #region 2FA
-
-  @Post('2fa/setup')
-  @Version('1')
-  @ApiOperation({ summary: 'Setup 2FA' })
-  public async setup2FA(@CurrentUser() user: AzureUser): Promise<unknown> {
-    return this.usersService.setup2FA(user.id);
-  }
-
-  @Post('2fa/verify')
-  @Version('1')
-  @ApiOperation({ summary: 'Verify and enable 2FA' })
-  public async verify2FA(
-    @CurrentUser() user: AzureUser,
-    @Body() dto: Verify2FADto,
-  ): Promise<unknown> {
-    return this.usersService.verify2FA(user.id, dto.token);
-  }
-
-  @Delete('2fa')
-  @Version('1')
-  @ApiOperation({ summary: 'Disable 2FA' })
-  public async disable2FA(
-    @CurrentUser() user: AzureUser,
-    @Body() dto: Verify2FADto,
-  ): Promise<unknown> {
-    return this.usersService.disable2FA(user.id, dto.token);
   }
 
   // #endregion

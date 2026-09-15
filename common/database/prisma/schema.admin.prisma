@@ -11,7 +11,6 @@ model User {
   id                       String      @id @db.VarChar(36) @map("id")
   username                 String      @unique @db.VarChar(100) @map("username")
   email                    String      @unique @db.VarChar(255) @map("email")
-  password                 String?     @db.VarChar(255) @map("password")
   avatar                   String?     @db.VarChar(2048) @map("avatar")
   genderId                 String?     @db.VarChar(36) @map("gender")
   age                      Int?        @map("age")
@@ -20,10 +19,6 @@ model User {
   ipAddress                String      @db.VarChar(45) @map("ip_address")
   lastSeen                 DateTime    @default(now()) @db.DateTime(0) @map("last_seen")
   isActive                 Boolean     @default(true) @map("is_active")
-  authHash                 String?     @db.VarChar(255) @map("auth_hash")
-  authHashExpiration       DateTime?   @db.DateTime(0) @map("auth_hash_expiration")
-  twoFactorEnabled         Boolean     @default(false) @map("two_factor_enabled")
-  twoFactorSecret          String?     @db.VarChar(512) @map("two_factor_secret")
   userStatusId             String      @db.VarChar(36) @map("user_status_id")
   roleId                   String      @db.VarChar(36) @map("role_id")
   azureOid                 String?     @unique @db.VarChar(36) @map("azure_oid")
@@ -39,7 +34,6 @@ model User {
   @@index([userStatusId, isActive])
   @@index([roleId])
   @@index([azureOid])
-  @@index([authHash])
   @@index([createdAt(sort: Desc), id])
   @@map("users")
 }
@@ -71,6 +65,20 @@ model UserStatus {
   users      User[]
 
   @@map("user_statuses")
+}
+
+// Singleton lock for the one-time /auth/bootstrap-admin flow — see rbac.md's
+// "Admin bootstrap" section. adminBootstrapped is the actual gate, not "does
+// an Administrator user currently exist" (that check can be defeated by
+// demoting or deleting the bootstrapped admin later). Never unset by any
+// application code path once true.
+model SystemBootstrap {
+  id                          String    @id @db.VarChar(36) @map("id")
+  adminBootstrapped           Boolean   @default(false) @map("admin_bootstrapped")
+  bootstrappedAt              DateTime? @db.DateTime(0) @map("bootstrapped_at")
+  bootstrappedByAzureObjectId String?   @db.VarChar(36) @map("bootstrapped_by_azure_object_id")
+
+  @@map("system_bootstrap")
 }
 
 model WebhookSubscription {

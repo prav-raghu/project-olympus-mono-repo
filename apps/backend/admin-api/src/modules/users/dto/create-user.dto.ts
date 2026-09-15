@@ -13,11 +13,6 @@ export class CreateUserDto {
 
   @ApiProperty()
   @IsString()
-  @MinLength(8)
-  password: string = '';
-
-  @ApiProperty()
-  @IsString()
   roleId: string = '';
 
   @ApiProperty()

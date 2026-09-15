@@ -15,6 +15,10 @@ You are working on an Angular application. These rules apply to all files under 
 
 Both apps are Angular — there is no React or Next.js anywhere on the web frontend.
 
+## Dates — display as dd/MM/yyyy, optional HH:mm:ss — read date-handling.instructions.md first
+
+Every rendered date/timestamp goes through the shared `formatDate`/`formatDateTime` helpers (`date-fns`, already a dependency) — never `toLocaleDateString()`, never a second date library. Append time (`HH:mm:ss`) only for genuine timestamps (activity/audit views); a plain business date is date-only. Outbound to the API is always ISO 8601, never the display format. See `date-handling.instructions.md` for the full convention and the ready-to-use utility.
+
 ## Validation — read validation-chain.instructions.md first
 
 Every form must implement the full validation chain. The two rules that govern error display:

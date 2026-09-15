@@ -14,24 +14,24 @@ const redis: Redis | null = (() => {
             lazyConnect: false,
             retryStrategy: (times) => {
                 if (times > 3) {
-                    logger.warn('Redis unavailable - running without cache');
+                    logger.warn("Redis unavailable - running without cache");
                     return null;
                 }
                 return Math.min(times * 100, 2000);
             },
         });
 
-        instance.on('error', (err) => {
-            logger.warn('Redis connection error', { message: err.message });
+        instance.on("error", (err) => {
+            logger.warn("Redis connection error", { message: err.message });
         });
 
-        instance.on('ready', () => {
-            logger.info('Redis connected successfully');
+        instance.on("ready", () => {
+            logger.info("Redis connected successfully");
         });
 
         return instance;
     } catch (error) {
-        logger.warn('Redis initialization failed - running without cache', { error });
+        logger.warn("Redis initialization failed - running without cache", { error });
         return null;
     }
 })();
@@ -63,7 +63,7 @@ export class RedisService {
         try {
             return await operation();
         } catch (error) {
-            this.logger.warn('Redis operation failed, using fallback', { error });
+            this.logger.warn("Redis operation failed, using fallback", { error });
             return fallback;
         }
     }
@@ -73,7 +73,7 @@ export class RedisService {
         await this.safeExecute(async () => {
             const key = `presence:${userId}`;
             await this.client!.setex(key, ttl, JSON.stringify({ socketId, lastSeen: Date.now() }));
-            await this.client!.sadd('online_users', userId);
+            await this.client!.sadd("online_users", userId);
         }, undefined);
     }
 
@@ -81,7 +81,7 @@ export class RedisService {
         await this.safeExecute(async () => {
             const key = `presence:${userId}`;
             await this.client!.del(key);
-            await this.client!.srem('online_users', userId);
+            await this.client!.srem("online_users", userId);
         }, undefined);
     }
 
@@ -93,7 +93,7 @@ export class RedisService {
 
     async getOnlineUsers(): Promise<string[]> {
         return this.safeExecute(async () => {
-            return this.client!.smembers('online_users');
+            return this.client!.smembers("online_users");
         }, []);
     }
 
@@ -146,6 +146,24 @@ export class RedisService {
         }, undefined);
     }
 
+    // Session invalidation ("log out everywhere" — minIat marker)
+    async invalidateAllSessions(userId: string, ttlSeconds = 86400): Promise<void> {
+        await this.safeExecute(async () => {
+            const key = `session:minIat:${userId}`;
+            await this.client!.setex(key, ttlSeconds, Math.floor(Date.now() / 1000).toString());
+        }, undefined);
+    }
+
+    async isSessionInvalidated(userId: string, issuedAt: number): Promise<boolean> {
+        return this.safeExecute(async () => {
+            const minIat = await this.client!.get(`session:minIat:${userId}`);
+            if (!minIat) {
+                return false;
+            }
+            return issuedAt < parseInt(minIat, 10);
+        }, false);
+    }
+
     // User data caching
     async cacheUser(userId: string, userData: unknown, ttl = 3600): Promise<void> {
         await this.safeExecute(async () => {
@@ -165,11 +183,11 @@ export class RedisService {
         if (userIds.length === 0) {
             return new Map();
         }
-        
+
         return this.safeExecute(async () => {
-            const keys = userIds.map(id => `user:${id}`);
+            const keys = userIds.map((id) => `user:${id}`);
             const values = await this.client!.mget(...keys);
-            
+
             const userMap = new Map<string, Record<string, unknown>>();
             values.forEach((value, index) => {
                 if (value) {

@@ -4,8 +4,6 @@ import type { PrismaClient, User } from '@project-olympus/database';
 import { EmailService } from '@project-olympus/email';
 import { ADMIN_TIER_ROLES } from '@project-olympus/types';
 import crypto from 'node:crypto';
-import { generateSecret, generateURI, verify as verifyOtp } from 'otplib';
-import { EnvConfig } from '../../config/env.config';
 import type { CreateUserDto } from './dto/create-user.dto';
 import type { UpdateUserDto } from './dto/update-user.dto';
 
@@ -15,30 +13,6 @@ export class UsersService {
     @Inject(ADMIN_DB) private readonly prisma: PrismaClient,
     private readonly emailService: EmailService,
   ) {}
-
-  // #region Encryption helpers
-
-  private encryptTotpSecret(plaintext: string): string {
-    const key = Buffer.from(EnvConfig.get('TWO_FACTOR_ENCRYPTION_KEY') ?? '', 'hex');
-    const iv = crypto.randomBytes(12);
-    const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
-    const ciphertext = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
-    const authTag = cipher.getAuthTag();
-    return `${iv.toString('hex')}:${authTag.toString('hex')}:${ciphertext.toString('hex')}`;
-  }
-
-  private decryptTotpSecret(encrypted: string): string {
-    const [ivHex, authTagHex, ciphertextHex] = encrypted.split(':');
-    const key = Buffer.from(EnvConfig.get('TWO_FACTOR_ENCRYPTION_KEY') ?? '', 'hex');
-    const iv = Buffer.from(ivHex, 'hex');
-    const authTag = Buffer.from(authTagHex, 'hex');
-    const ciphertext = Buffer.from(ciphertextHex, 'hex');
-    const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
-    decipher.setAuthTag(authTag);
-    return decipher.update(ciphertext).toString('utf8') + decipher.final('utf8');
-  }
-
-  // #endregion
 
   // #region User queries
 
@@ -126,7 +100,6 @@ export class UsersService {
         genderId: true,
         age: true,
         allowEmailCommunications: true,
-        twoFactorEnabled: true,
         lastSeen: true,
         isActive: true,
         createdAt: true,
@@ -207,7 +180,6 @@ export class UsersService {
         ipAddress: true,
         lastSeen: true,
         isActive: true,
-        twoFactorEnabled: true,
         userStatusId: true,
         roleId: true,
         createdAt: true,
@@ -266,8 +238,6 @@ export class UsersService {
           : 'Email already exists';
       return result;
     }
-    const authHash = crypto.randomUUID();
-    const authHashExpiration = new Date(Date.now() + 24 * 60 * 60 * 1000);
     const user = await this.prisma.user.create({
       data: {
         id: crypto.randomUUID(),
@@ -281,8 +251,6 @@ export class UsersService {
         createdAt: new Date(),
         ipAddress: '',
         userStatusId: model.userStatusId,
-        authHash,
-        authHashExpiration,
       },
     });
     if (!user) {
@@ -294,57 +262,9 @@ export class UsersService {
       result.message = 'User role not found';
       return result;
     }
-    await this.emailService.sendMail(
-      user.email,
-      `Admin Onboarding`,
-      'admin-onboarding-notification',
-      {
-        username: user.username,
-        dateLoggedIn: new Date().toLocaleString(),
-        verificationLink: `${EnvConfig.get('ADMIN_WEB_URL') ?? 'http://localhost:4200'}/verify-email?auth_hash=${authHash}`,
-      },
-    );
+    await this.emailService.sendWelcome(user.email, user.username);
     result.isSuccessful = true;
     result.message = 'User onboarded successfully';
-    return result;
-  }
-
-  public async resendVerificationEmail(model: { email: string }): Promise<unknown> {
-    const result: { isSuccessful: boolean; message: string; data: null } = {
-      isSuccessful: false,
-      message: '',
-      data: null,
-    };
-    const user = await this.prisma.user.findUnique({
-      where: { email: model.email },
-      include: { status: true },
-    });
-    if (!user) {
-      result.message = 'User not found';
-      return result;
-    }
-    if (user.status.name !== 'Pending Verification') {
-      result.message = 'You cannot resend verification email for this user';
-      return result;
-    }
-    const authHash = crypto.randomUUID();
-    const authHashExpiration = new Date(Date.now() + 2 * 60 * 60 * 1000);
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: { authHash, authHashExpiration },
-    });
-    await this.emailService.sendMail(
-      user.email,
-      `Admin Onboarding`,
-      'admin-onboarding-notification',
-      {
-        username: user.username,
-        dateLoggedIn: new Date().toLocaleString(),
-        verificationLink: `${EnvConfig.get('ADMIN_WEB_URL') ?? 'http://localhost:4200'}/verify-email?auth_hash=${authHash}`,
-      },
-    );
-    result.isSuccessful = true;
-    result.message = 'Verification email resent successfully';
     return result;
   }
 
@@ -391,85 +311,6 @@ export class UsersService {
     result.isSuccessful = true;
     result.message = 'Profile updated successfully';
     result.data = updatedUser;
-    return result;
-  }
-
-  // #endregion
-
-  // #region 2FA
-
-  public async setup2FA(
-    userId: string,
-  ): Promise<{ isSuccessful: boolean; message: string; data?: { secret: string; qrCode: string } }> {
-    const result: {
-      isSuccessful: boolean;
-      message: string;
-      data?: { secret: string; qrCode: string };
-    } = { isSuccessful: false, message: '' };
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) {
-      result.message = 'User not found';
-      return result;
-    }
-    const { toDataURL } = await import('qrcode');
-    const secret = generateSecret();
-    const otpauthUrl = generateURI({ label: user.email, secret, issuer: 'Admin' });
-    const qrCode = await toDataURL(otpauthUrl);
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { twoFactorSecret: this.encryptTotpSecret(secret) },
-    });
-    result.isSuccessful = true;
-    result.message = '2FA setup initiated';
-    result.data = { secret, qrCode };
-    return result;
-  }
-
-  public async verify2FA(
-    userId: string,
-    token: string,
-  ): Promise<{ isSuccessful: boolean; message: string }> {
-    const result = { isSuccessful: false, message: '' };
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user?.twoFactorSecret) {
-      result.message = 'User not found or 2FA not set up';
-      return result;
-    }
-    const isValid = await verifyOtp({ token, secret: this.decryptTotpSecret(user.twoFactorSecret) });
-    if (!isValid) {
-      result.message = 'Invalid verification code';
-      return result;
-    }
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { twoFactorEnabled: true, updatedAt: new Date() },
-    });
-    result.isSuccessful = true;
-    result.message = '2FA enabled successfully';
-    return result;
-  }
-
-  public async disable2FA(
-    userId: string,
-    token: string,
-  ): Promise<{ isSuccessful: boolean; message: string }> {
-    const result = { isSuccessful: false, message: '' };
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user || !user.twoFactorEnabled || !user.twoFactorSecret) {
-      result.message = 'User not found or 2FA not enabled';
-      return result;
-    }
-    const isValid = await verifyOtp({ token, secret: this.decryptTotpSecret(user.twoFactorSecret) });
-    if (!isValid) {
-      result.message = 'Invalid verification code';
-      return result;
-    }
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { twoFactorEnabled: false, twoFactorSecret: null, updatedAt: new Date() },
-    });
-    result.isSuccessful = true;
-    result.message = '2FA disabled successfully';
     return result;
   }
 

@@ -105,7 +105,6 @@ export class BatchService {
     users: {
       email: string;
       username: string;
-      password: string;
       ipAddress: string;
       roleId: string;
       userStatusId: string;
@@ -114,7 +113,6 @@ export class BatchService {
     interface UserData {
       email: string;
       username: string;
-      password: string;
       ipAddress: string;
       roleId: string;
       userStatusId: string;
@@ -130,7 +128,6 @@ export class BatchService {
           id: crypto.randomUUID(),
           email: userData.email,
           username: userData.username,
-          password: userData.password,
           ipAddress: userData.ipAddress,
           roleId: userData.roleId,
           userStatusId: userData.userStatusId,
@@ -143,7 +140,10 @@ export class BatchService {
   public async bulkUpdateUserStatus(
     updates: { userId: string; userStatusId: string }[],
   ): Promise<BatchOperationSummary> {
-    interface UpdateData { userId: string; userStatusId: string }
+    interface UpdateData {
+      userId: string;
+      userStatusId: string;
+    }
     const operation: BatchOperation<UpdateData> = {
       type: BatchOperationType.UPDATE,
       items: updates.map((update) => ({ id: update.userId, data: update })),
@@ -158,7 +158,9 @@ export class BatchService {
   }
 
   public async bulkDeleteUsers(userIds: string[]): Promise<BatchOperationSummary> {
-    interface DeleteData { userId: string }
+    interface DeleteData {
+      userId: string;
+    }
     const operation: BatchOperation<DeleteData> = {
       type: BatchOperationType.DELETE,
       items: userIds.map((id) => ({ id, data: { userId: id } })),

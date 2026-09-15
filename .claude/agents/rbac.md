@@ -197,3 +197,50 @@ An endpoint with no `@RequirePermissions` allows any authenticated user — add 
 ## Critical rules
 
 Never check roles directly in service methods — only check permissions, and only via the guard. Never put role/permission logic inside controllers — use `@RequirePermissions`. Public/unauthenticated routes skip both guards entirely — only for genuinely public endpoints. `ADMINISTRATOR` always gets `Object.values(Permission)` — never list its permissions manually. Permissions are embedded in the MSAL-derived JWT claims/session at request time, resolved server-side from the role — changing `RolePermissions` takes effect on the user's next token validation, not retroactively for an in-flight session.
+
+## Admin bootstrap (first-run only)
+
+`admin-api` needs exactly one way to grant the very first `ADMINISTRATOR` role assignment on a fresh database — and that way must be permanently and provably unusable the moment it succeeds once. Never let "make me an admin" be reachable through the normal `/users` CRUD surface as a workaround; it goes through this dedicated, self-closing flow instead.
+
+Unlike a password/JWT stack, this project doesn't issue credentials — Azure AD already proved who the caller is by the time a request reaches `AzureAuthGuard`. What's missing on a fresh database is the *authorization* side: the first row in this project's own `Role`/`User` tables. So the bootstrap endpoint is guarded by `AzureAuthGuard` like any other route (no anonymous access), not by a password.
+
+### 1. Prisma model — the lock, not the check
+
+```prisma
+model SystemBootstrap {
+  id                          String    @id @db.VarChar(36) @map("id")
+  adminBootstrapped           Boolean   @default(false) @map("admin_bootstrapped")
+  bootstrappedAt              DateTime? @db.DateTime(0) @map("bootstrapped_at")
+  bootstrappedByAzureObjectId String?   @db.VarChar(36) @map("bootstrapped_by_azure_object_id")
+
+  @@map("system_bootstrap")
+}
+```
+
+A single row, fixed `id`. This flag is the actual gate — not "does an Administrator user currently exist," because that check can be defeated by deleting or demoting the bootstrapped admin later. Once written, `adminBootstrapped` is never unset by any application code path — no route, no service method, no migration script. Already added to `schema.admin.prisma`.
+
+### 2. Env kill-switch (defense in depth, layered under the DB flag)
+
+```typescript
+// common/config/src/env.ts — AppEnv
+ADMIN_BOOTSTRAP_ENABLED: boolean = false;
+```
+
+Off by default everywhere. A deployment turns it on only for the window needed to bootstrap the first admin, then turns it back off — the DB lock is the permanent guarantee, the env var is an operational safety net on top of it.
+
+### 3. Endpoint — `POST /auth/bootstrap-admin` (admin-api only, `AzureAuthGuard`-protected)
+
+Already implemented in `apps/backend/admin-api/src/modules/auth/auth.service.ts`/`auth.controller.ts`: checks the env flag, atomically claims the `SystemBootstrap` lock inside a `$transaction` (`updateMany` on `{ id: 'singleton', adminBootstrapped: false }` — a `count: 0` result means someone already claimed it, not "the row didn't exist yet"), then upserts a `User` row for the caller's `azureOid` with the `Administrator` role. Everything happens inside one transaction so a failed role/status lookup never leaves the lock claimed with no admin actually created.
+
+Never add a general-purpose "create admin" path outside this flow.
+
+## Session invalidation — "log out everywhere"
+
+Azure-issued access tokens are opaque to this project's backend once minted — Azure AD has no concept of this app's "sign out of all devices" action, and a short token TTL alone doesn't cover "I think my laptop was compromised, invalidate it now." This project layers its own per-user invalidation marker on top of MSAL validation (the same `minIat` pattern the JWT-based sibling template uses for its own token denylist, adapted here to sit *after* Azure's signature/issuer/audience checks rather than replacing them):
+
+- `RedisService.invalidateAllSessions(userId)` (`common/cache`) writes `session:minIat:{userId}` = current epoch seconds.
+- `RedisService.isSessionInvalidated(userId, issuedAt)` returns `true` when a token's `iat` claim predates that marker.
+- `AzureAuthGuard` (both the shared `common/auth` base class and each service's local copy) calls `isSessionInvalidated` right after `MsalTokenValidator.validate()` succeeds, before populating `request.user` — a token that validates cryptographically but predates the marker is still rejected with 401.
+- `POST /auth/logout-all` (admin-api, self-service, any authenticated user, no special permission required) calls `invalidateAllSessions` for the caller's own id.
+
+When adding this endpoint to another service, reuse the same `RedisService` methods — never invent a second invalidation mechanism.

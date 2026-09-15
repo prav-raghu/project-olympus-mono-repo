@@ -10,9 +10,7 @@
         "test": "jest",
         "update-deps": "pnpm update --latest"
     },
-    "dependencies": {
-        "bcrypt": "^6.0.0"
-    },
+    "dependencies": {},
     "devDependencies": {
         "@types/jest": "^30.0.0",
         "@types/node": "^25.6.0",

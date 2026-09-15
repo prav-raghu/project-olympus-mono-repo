@@ -2,6 +2,21 @@
 
 The Angular + NestJS counterpart to `node-mono-repo-template` — same monorepo philosophy (pnpm + Turborepo, `common/*` shared packages, Claude Code agents driving the build), different stack: NestJS instead of Fastify, Angular instead of React/Next.js, MySQL instead of PostgreSQL, Azure MSAL instead of custom JWT.
 
+## Instruction precedence
+
+When guidance conflicts, resolve in this order:
+
+1. The user's explicit request
+2. Security/permission constraints in `.claude/settings.json`
+3. Current repository code and committed configuration (e.g. `docker-compose.yaml`, `schema.*.prisma`) — a written example never overrides what's actually committed
+4. Path-specific files in `.claude/rules/`
+5. The selected subagent in `.claude/agents/`
+6. This file
+7. Deep-dive reference docs in `.claude/instructions/`
+8. Legacy commands in `.claude/commands/` — thin entry points that delegate to an agent; treat any command content that contradicts a higher-precedence source as stale, not authoritative
+
+If a command, agent, and rule genuinely disagree instead of one being simply out of date, say so and ask rather than silently picking one.
+
 ## Subagents (auto-invoked by description match)
 
 | Subagent | Scope |
@@ -32,6 +47,24 @@ The Angular + NestJS counterpart to `node-mono-repo-template` — same monorepo 
 
 For anything not covered by a subagent above, read the relevant file in `.claude/instructions/` before writing code.
 
+## Model selection when delegating to a subagent
+
+Every subagent's `model:` frontmatter is `inherit` unless noted below — it runs on whatever model this session is running on. The `Agent` tool also accepts a per-call `model` override that beats the agent's own frontmatter; use it deliberately to control cost, not by default.
+
+**Override down to `claude-haiku-4-5-20251001` only when *all* of these hold:**
+- The task mirrors an existing, unambiguous pattern already in this codebase (e.g. "add a 6th CRUD entity shaped exactly like the other 5") — not a first-of-its-kind design decision.
+- Nothing security-, auth-, RBAC-, payment-, or PII-adjacent is being written or touched.
+- A mistake would be caught by `tsc`/lint/tests before merge — not the kind of subtle logic error that slips past mechanical checks and only shows up as a real bug later.
+- The blast radius is one file or one entity, not a shared `common/*` package or a cross-cutting concern.
+
+`new-service-scaffold` and `testing` (for straightforward, already-understood service/controller test-writing — not for designing a test strategy for something novel) default to Haiku in their own frontmatter for exactly this reason: they're closer to templating than judgment. That default is a starting point, not a floor — bump either back to Sonnet for an unusually complex instance of their normal work.
+
+**Never override down — keep Sonnet (or the session's own model) — for:** `rbac`, `database-migrations`, `domain-modeler`, `code-review`, `typescript-standards`, `deployment-coolify`, `infrastructure`, `vps-bootstrap`, `enterprise-scale`, `full-stack-orchestrator`, `audit-log`, `webhook-events`, `common-packages`, `relational-database`. These carry either security consequences, wide blast radius, or genuine architectural judgment that a mistake won't surface as a clean typecheck failure — it surfaces as a production incident or a silent vulnerability. `code-review` in particular is the backstop for everything else in this list; downgrading the backstop defeats the point of having one.
+
+Everything else (`api-builder`, `frontend-angular`, `frontend-page-builder`, `mobile`, `feature-flags`, `backend-service`, `external-api`) is task-dependent — judge the specific request against the four bullets above each time rather than a fixed per-agent answer.
+
+This list is a starting point, not a settled policy — if a Haiku-delegated task comes back needing real rework, that's a signal to tighten these criteria (or move that agent to the "never override" list), not to push through it.
+
 ## Path-gated rules (automatic)
 
 Files under `.claude/rules/` load automatically when a matching file enters context — no manual reading required:
@@ -61,12 +94,38 @@ Alongside Azure, this project also supports deploying to a **self-hosted VPS via
 |---|---|
 | `/ui-ux-pro-max` | Before building any frontend page or component — design system lookup, color, typography, UX patterns |
 | `/build-page` | Build a complete Angular page end-to-end with design intelligence baked in |
+| `/impeccable` | After a page/component is built — 23-command design taste pass (`critique`, `audit`, `polish`, `bolder`, `quieter`, `distill`, `animate`, ...) plus a deterministic 59-rule anti-"AI slop" detector (gradient text, purple/violet gradients, glowing dark-mode accents, overused fonts, WCAG contrast, bounce easing) |
+| `emil-design-eng` | Animation and micro-interaction review — Emil Kowalski's (Sonner/Vaul author) design-engineering rules: keep UI animations under 300ms, never `ease-in` for entrances, custom easing over CSS defaults, spring physics, before/after review tables |
+| `design-taste-frontend` (`taste-skill`) | Anti-slop pass for **`customer-web` marketing/landing pages, portfolios, and redesigns only** — explicitly not scoped for dashboards, data tables, or multi-step product UI, so skip it for `admin-web` CRUD screens. Vendored from a React/Next.js source — translate its code samples to Angular before use (its own file has the detail). Tunable via `DESIGN_VARIANCE`/`MOTION_INTENSITY`/`VISUAL_DENSITY` (1–10) |
 | `/security-review` | Audit code for auth gaps, injection risks, and secrets before merge |
 | `/code-review-skill` | Full quality review: types, naming, security, form validation coverage |
+| `/seo-optimization` | Audit/improve SEO for `customer-web` (Angular, CSR-only today) — per-route Title/Meta, structured data, sitemaps, Open Graph, Core Web Vitals; leads with the SSR/prerender recommendation the CSR baseline needs |
+
+### Design taste stack
+
+`ui-ux-pro-max` and `build-page` remain the primary design authority for this monorepo — design-system lookup, palettes, fonts, and Angular-specific component patterns for the actual build. `impeccable`, `emil-design-eng`, and `design-taste-frontend` are an **additive taste/anti-slop layer** run after a page or component is built, not a replacement:
+
+- **`impeccable`** is the general-purpose one — works for any surface (dashboards included), framework-agnostic since it operates on rendered browser output. Run `/impeccable audit <target>` or `/impeccable polish <target>` as a finishing pass on new frontend work.
+- **`emil-design-eng`** narrows to motion/animation review specifically — invoke when a page has non-trivial transitions, loading states, or micro-interactions worth scrutinizing. Almost entirely CSS-based and framework-agnostic.
+- **`design-taste-frontend`** only fits `customer-web` marketing/landing surfaces (its own description explicitly excludes dashboards and data tables) — do not reach for it on `admin-web`. Its design-taste judgment (palette/type/spacing/motion decisions, the anti-slop checklist) is framework-agnostic; its code samples are React/Next.js and must be translated to Angular (Signals, standalone components, `afterNextRender`) before use — see the note at the top of its `SKILL.md`.
+
+Vendored from `pbakaus/impeccable`, `emilkowalski/skills`, and `Leonxlnx/taste-skill` respectively (Apache-2.0 / MIT / MIT) — see each skill folder's `SOURCE.md` for the commit vendored and how to refresh it. `impeccable`'s own PostToolUse/Stop hook auto-run was **not** wired into `.claude/settings.local.json` — it's available to invoke manually via `/impeccable ...`; opt into the automatic per-edit hook yourself if you want it (see `.claude/skills/impeccable/reference/hooks.md`).
 
 ## Commands (legacy, still work)
 
-`/add-endpoint`, `/add-entity`, `/add-service`, `/add-pages`, `/add-tests`, `/design-database`, `/review`, `/build-system`, `/provision-infrastructure`, `/init-project`, `/sync-from-template`
+`/add-endpoint`, `/add-entity`, `/add-service`, `/add-pages`, `/add-tests`, `/design-database`, `/review`, `/build-system`, `/provision-infrastructure`, `/init-project`, `/sync-from-template`, `/deploy-coolify`, `/request-logging`
+
+## Memory — Claude Mem (optional)
+
+Serena (LSP-backed code navigation MCP server) is not used on this project — Claude Code drives navigation through its own tools instead. If the team wants cross-session memory (decisions and context persisting between sessions instead of vanishing when one ends), **Claude Mem** is the option this template's sibling project uses: it hooks into the session lifecycle (`SessionStart`, `UserPromptSubmit`, `PostToolUse`, `Stop`, `SessionEnd`) and stores a local SQLite + vector-search summary of what happened.
+
+This is a per-developer, one-time install — Claude does not run it for you:
+
+```bash
+npx claude-mem install
+```
+
+Local dashboard (session history, memory search): `http://localhost:37777`. Wrap anything session-specific and sensitive (API keys, customer data) in `<private>...</private>` in a prompt to exclude it from what gets stored. Not currently installed on this project — this section documents the option for the developer to opt into, not a standing requirement.
 
 ## UI/UX skill setup (one-time global install)
 
@@ -102,6 +161,7 @@ Requires Python 3.x. This is optional — `.claude/skills/ui-ux-pro-max/SKILL.md
 - Use `#region` / `#endregion` for logical code grouping in TypeScript/C#
 - Before marking any TypeScript task complete, run `pnpm --filter <app> typecheck` — zero errors required
 - All frontend forms must implement the full validation chain — see `validation-chain.instructions.md`: client `Validators` failures show inline, server errors show in a `serverError` signal/toast, never the other way round
+- No god structures: never name a controller, service, DTO, or file after the project/app itself (e.g. `olympus.controller.ts`, `admin.service.ts`) as a catch-all that encapsulates every entity's logic. Each entity gets its own service layer and DTOs under its own file, named after the entity (`user.service.ts`, `user.dto.ts`). A controller may still be entity-scoped (`user.controller.ts`) or composed into a dashboard/aggregate controller that calls into per-entity services — the composition happens at the controller/route layer, never by collapsing entity logic into one shared file. See `.claude/agents/backend-service.md` and `.claude/agents/api-builder.md` for the controller/service/DTO file layout this produces.
 - please build all apps using tsconfig tsc to ensure no build surprise errors during deployment run.
 
 ## Folder structure (immutable)
